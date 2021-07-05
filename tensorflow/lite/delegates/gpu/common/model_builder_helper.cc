@@ -38,6 +38,8 @@ limitations under the License.
 #include "tensorflow/lite/delegates/gpu/common/tensor.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 
+#include <iostream>
+
 namespace tflite {
 namespace gpu {
 namespace {

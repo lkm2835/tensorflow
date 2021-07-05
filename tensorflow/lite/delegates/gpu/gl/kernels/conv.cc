@@ -31,6 +31,8 @@ limitations under the License.
 #include "tensorflow/lite/delegates/gpu/gl/variable.h"
 #include "tensorflow/lite/delegates/gpu/gl/workgroups/ideal_workgroup_picker.h"
 
+#include "tensorflow/lite/kmdebug.h"
+
 namespace tflite {
 namespace gpu {
 namespace gl {
@@ -40,7 +42,9 @@ class Convolution : public NodeShader {
  public:
   absl::Status GenerateCode(const GenerationContext& ctx,
                             GeneratedCode* generated_code) const final {
-    std::cout << "tensorflow/lite/delegates/gpu/gl/kernels/conv.cc/Convolution::GenerateCode()\n";
+#ifdef DEBUG
+  SFLAG();
+#endif
 	if (ctx.input_shapes.size() != 1) {
       return absl::UnimplementedError(
           "Convolution does not support more than 1 runtime tensor");
@@ -167,13 +171,22 @@ class Convolution1x1 : public NodeShader {
  public:
   absl::Status GenerateCode(const GenerationContext& ctx,
                             GeneratedCode* generated_code) const final {
-    std::cout << "tensorflow/lite/delegates/gpu/gl/kernels/conv.cc/Convolution1x1::GenerateCode()\n";
+#ifdef DEBUG
+  SFLAG();
+#endif
+std::cout << ctx.input_shapes[0][0] << ctx.input_shapes[0][1] << ctx.input_shapes[0][2] << ctx.input_shapes[0][3] << std::endl;
+std::cout << ctx.output_shapes[0][0] << ctx.output_shapes[0][1] << ctx.output_shapes[0][2] << ctx.output_shapes[0][3] << std::endl;
 	if (ctx.input_shapes.size() != 1) {
       return absl::UnimplementedError(
           "Convolution does not support more than 1 runtime tensor");
     }
     const auto& attr =
         absl::any_cast<const Convolution2DAttributes&>(ctx.op_attr);
+    std::cout << attr.weights.shape.h << " ";
+    std::cout << attr.weights.shape.w << " ";
+    std::cout << attr.weights.shape.o << " ";
+    std::cout << attr.weights.shape.i << " ";
+    std::cout << std::endl;
     if (attr.weights.shape.h != 1 || attr.weights.shape.w != 1) {
       return absl::UnimplementedError("Height and width should be 1.");
     }

@@ -1428,6 +1428,7 @@ inline void HybridConv(const ConvParams& params, float* scaling_factors_ptr,
   // Flatten so that each filter has its own row.
   const int filter_rows = filter_shape.Dims(0);
   const int filter_cols = FlatSizeSkipDim(filter_shape, 0);
+  std::cout << filter_rows << std::endl << filter_cols << std::endl;
 
   // In MatrixBatchVectorMultiplyAccumulate, each output value is the
   // dot product of one row of the first matrix with one row of the second

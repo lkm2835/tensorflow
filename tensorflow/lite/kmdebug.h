@@ -3,7 +3,11 @@
 #include <string>
 
 #define DEBUG
-#define SFLAG() FunctionFlow func_flow(__FILE__, __PRETTY_FUNCTION__);
+#ifdef DEBUG
+	#define SFLAG() FunctionFlow func_flow(__FILE__, __PRETTY_FUNCTION__);
+#else
+	#define SFLAG() 
+#endif
 
 
 struct FuncInformation {

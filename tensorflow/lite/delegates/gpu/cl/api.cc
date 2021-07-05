@@ -65,6 +65,9 @@ class NoopTensorTie : public TensorTie {
   }
 
   absl::Status SetExternalObject(TensorObject obj) final {
+  #ifdef DEBUG
+    SFLAG();
+  #endif
     if (!def().external_def.object_def.user_provided) {
       return absl::InvalidArgumentError("Tensor object is readonly.");
     }

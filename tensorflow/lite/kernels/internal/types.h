@@ -20,6 +20,8 @@ limitations under the License.
 #include <cstring>
 #include <initializer_list>
 
+#include <iostream>
+
 #include "tensorflow/lite/kernels/internal/compatibility.h"
 
 namespace tflite {
@@ -200,6 +202,7 @@ class RuntimeShape {
   inline void SetDim(int i, int32_t val) {
     TFLITE_DCHECK_GE(i, 0);
     TFLITE_DCHECK_LT(i, size_);
+
     if (size_ > kMaxSmallSize) {
       dims_pointer_[i] = val;
     } else {

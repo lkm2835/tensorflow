@@ -20,6 +20,8 @@ limitations under the License.
 #include "tensorflow/lite/minimal_logging.h"
 #include "tensorflow/lite/shared_library.h"
 
+#include "tensorflow/lite/kmdebug.h"
+
 namespace tflite {
 namespace {
 
@@ -90,6 +92,7 @@ inline ExternalDelegateWrapper* GetExternalDelegateWrapper(
 
 // Relay Prepare() call to the associated external TfLiteDelegate object.
 TfLiteStatus DelegatePrepare(TfLiteContext* context, TfLiteDelegate* delegate) {
+  SFLAG();
   auto external_delegate_wrapper = GetExternalDelegateWrapper(delegate);
   TfLiteDelegate* external_delegate =
       external_delegate_wrapper->tflite_external_delegate();

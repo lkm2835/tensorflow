@@ -779,6 +779,7 @@ void EvalFloat(TfLiteContext* context, TfLiteNode* node,
   op_params.dilation_height_factor = params->dilation_height_factor;
   op_params.float_activation_min = output_activation_min;
   op_params.float_activation_max = output_activation_max;
+
   switch (effective_kernel_type) {
     case kReference: {
       reference_ops::Conv(op_params, GetTensorShape(input),
@@ -833,6 +834,9 @@ TfLiteStatus EvalHybridPerChannel(TfLiteContext* context, TfLiteNode* node,
                                   const TfLiteTensor* filter,
                                   const TfLiteTensor* bias,
                                   TfLiteTensor* im2col, TfLiteTensor* output) {
+#ifdef DEBUG
+  SFLAG();
+#endif                                 
   float output_activation_min, output_activation_max;
   CalculateActivationRange(params->activation, &output_activation_min,
                            &output_activation_max);
@@ -927,6 +931,9 @@ TfLiteStatus EvalHybrid(TfLiteContext* context, TfLiteNode* node,
                         const TfLiteTensor* input, const TfLiteTensor* filter,
                         const TfLiteTensor* bias, TfLiteTensor* im2col,
                         TfLiteTensor* accum_scratch, TfLiteTensor* output) {
+#ifdef DEBUG
+  SFLAG();
+#endif
   float output_activation_min, output_activation_max;
   CalculateActivationRange(params->activation, &output_activation_min,
                            &output_activation_max);
@@ -1004,8 +1011,9 @@ TfLiteStatus EvalImpl(TfLiteContext* context, TfLiteNode* node) {
   TF_LITE_ENSURE_OK(context, GetOutputSafe(context, node, 0, &output));
   const TfLiteTensor* input;
   TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, 0, &input));
-  const TfLiteTensor* filter;
+  const TfLiteTensor* filter; 
   TF_LITE_ENSURE_OK(context, GetInputSafe(context, node, 1, &filter));
+  //GetTensorShape(filter).SetDim(0, 16);
   bool has_bias = node->inputs->size == 3;
   const TfLiteTensor* bias = has_bias ? GetInput(context, node, 2) : nullptr;
   TfLiteTensor* im2col =
@@ -1023,6 +1031,41 @@ TfLiteStatus EvalImpl(TfLiteContext* context, TfLiteNode* node) {
     TransposeFloatTensor(filter, hwcn_weights);
     data->have_weights_been_transposed = true;
   }
+
+  std::cout << std::endl << "####################" << std::endl;
+  std::cout << "input_shape : " << GetTensorShape(input).DimensionsCount() << std::endl;
+  std::cout << "filter_shape : " << GetTensorShape(filter).DimensionsCount() << std::endl;
+  std::cout << "bias_shape : " << GetTensorShape(bias).DimensionsCount() << std::endl;
+  std::cout << "output_shape : " << GetTensorShape(output).DimensionsCount() << std::endl;
+  std::cout << "im2col_shape : " << GetTensorShape(im2col).DimensionsCount() << std::endl;
+  std::cout << "####################" << std::endl;
+  
+  std::cout << "input_shape : ";
+  for (int i = 0; i < GetTensorShape(input).DimensionsCount(); ++i) {
+    std::cout << GetTensorShape(input).Dims(i) << " ";
+  } std::cout << std::endl; 
+
+  std::cout << "filter_shape : ";
+  for (int i = 0; i < GetTensorShape(filter).DimensionsCount(); ++i) {
+    std::cout << GetTensorShape(filter).Dims(i) << " ";
+  } std::cout << std::endl;
+
+  std::cout << "bias_shape : ";
+  for (int i = 0; i < GetTensorShape(bias).DimensionsCount(); ++i) {
+    std::cout << GetTensorShape(bias).Dims(i) << " ";
+  } std::cout << std::endl;
+
+  std::cout << "output_shape : ";
+  for (int i = 0; i < GetTensorShape(output).DimensionsCount(); ++i) {
+    std::cout << GetTensorShape(output).Dims(i) << " ";
+  } std::cout << std::endl;
+
+  std::cout << "im2col_shape : ";
+  for (int i = 0; i < GetTensorShape(im2col).DimensionsCount(); ++i) {
+    std::cout << GetTensorShape(im2col).Dims(i) << " ";
+  } std::cout << std::endl;
+
+  std::cout << "####################" << std::endl << std::endl;
 
   TFLITE_DCHECK_EQ(input_type, input->type);
   switch (input_type) {  // Already know in/outtypes are same.

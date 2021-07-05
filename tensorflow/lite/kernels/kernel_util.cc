@@ -139,6 +139,7 @@ TfLiteStatus GetOutputSafe(const TfLiteContext* context, const TfLiteNode* node,
       context, ValidateTensorIndexingSafe(context, index, node->outputs->size,
                                           node->outputs->data, &tensor_index));\
   *tensor = GetTensorAtIndex(context, tensor_index);
+  std::cout << tensor_index << std::endl;
   return kTfLiteOk;
 }
 

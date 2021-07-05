@@ -23,7 +23,8 @@ package(
 cc_library(
     name = "external_delegate",
     srcs = ["external_delegate.cc"],
-    hdrs = ["external_delegate.h"],
+    hdrs = ["external_delegate.h",
+            "//tensorflow/lite:kmdebug.h"],
     deps = [
         "//tensorflow/lite:minimal_logging",
         "//tensorflow/lite:shared_library",

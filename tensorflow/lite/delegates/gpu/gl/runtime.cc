@@ -246,6 +246,9 @@ absl::Status Runtime::AddProgram(const GlShader& shader,
 }
 
 absl::Status Runtime::AllocateInternalObject(const Object& object) {
+#ifdef DEBUG
+  SFLAG();
+#endif
   const ObjectRef ref = GetRef(object);
   switch (object.object_type) {
     case ObjectType::BUFFER: {
@@ -593,6 +596,7 @@ absl::Status Runtime::Execute() {
     for (auto& b : descriptor.bindings) {
       RETURN_IF_ERROR(b());
     }
+    std::cout << "Dispatch descrpitor.num_workgroups : " << descriptor.num_workgroups[2] << std::endl;
     RETURN_IF_ERROR(command_queue_->Dispatch(descriptor.program,
                                              descriptor.num_workgroups));
   }

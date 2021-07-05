@@ -222,6 +222,9 @@ class DefaultTensorTie : public TensorTie {
   }
 
   absl::Status MaybeAllocateExternalObject() {
+  #ifdef DEBUG
+    SFLAG();
+  #endif
     const TensorObjectDef& d = def().external_def;
     switch (d.object_def.object_type) {
       case gpu::ObjectType::CPU_MEMORY: {
@@ -430,6 +433,9 @@ class InferenceRunnerImpl : public InferenceRunner {
   }
 
   absl::Status SetOutputObject(int index, TensorObject object) override {
+  #ifdef DEBUG
+    SFLAG();
+  #endif
     if (index < 0 || index >= outputs_.size()) {
       return absl::OutOfRangeError("Index is out of range");
     }
@@ -545,6 +551,9 @@ class InferenceBuilderImpl : public InferenceBuilder {
   }
 
   absl::Status Build(std::unique_ptr<InferenceRunner>* runner) final {
+  #ifdef DEBUG
+    SFLAG();
+  #endif
     auto kernels = NewNodeShaderRegistry();
     CompilationOptions compiler_options;
     compiler_options.allow_precision_loss =

@@ -55,6 +55,8 @@ limitations under the License.
 #include "tensorflow/lite/schema/schema_generated.h"
 #endif  // TFLITE_GPU_BINARY_RELEASE
 
+#include "tensorflow/lite/kmdebug.h"
+
 namespace tflite {
 namespace gpu {
 namespace gl {
@@ -425,6 +427,7 @@ TfLiteStatus DelegateCopyFromBufferHandle(TfLiteContext* context,
                                           TfLiteDelegate* delegate,
                                           TfLiteBufferHandle buffer_handle,
                                           TfLiteTensor* tensor) {
+  SFLAG();
   auto* gpu_delegate = GetGpuDelegate(delegate);
   if (!gpu_delegate) return kTfLiteError;
   const auto status = gpu_delegate->CopyFromBufferHandle(buffer_handle, tensor);
@@ -438,6 +441,7 @@ TfLiteStatus DelegateCopyToBufferHandle(TfLiteContext* context,
                                         TfLiteDelegate* delegate,
                                         TfLiteBufferHandle buffer_handle,
                                         TfLiteTensor* tensor) {
+  SFLAG();
   auto* gpu_delegate = GetGpuDelegate(delegate);
   if (!gpu_delegate) return kTfLiteError;
   const auto status = gpu_delegate->CopyToBufferHandle(buffer_handle, tensor);

@@ -122,6 +122,7 @@ class DelegateKernel {
 
   absl::Status Prepare(TfLiteContext* context,
                        const TfLiteDelegateParams* delegate_params) {
+    SFLAG();
     thread_id_prepare_ = std::this_thread::get_id();
 
     // Extract TFLite delegate execution plan from the context and convert it
@@ -132,6 +133,7 @@ class DelegateKernel {
     RETURN_IF_ERROR(InitializeGraph(context, delegate_params, &graph,
                                     &input_refs, &output_refs));
 
+    
     std::unique_ptr<InferenceBuilder> builder;
     bool graph_is_destroyed;
     const int experimental_flags = delegate_->options().experimental_flags;
@@ -158,7 +160,6 @@ class DelegateKernel {
             graph_is_destroyed ? &graph2 : &graph, &builder));
       }
     }
-
     // At this point tflite didn't allocate tensors yet, therefore, collect
     // indices and set all input and output tensors from tflite later.
     input_indices_.reserve(input_refs.size());
@@ -221,8 +222,13 @@ class DelegateKernel {
       RETURN_IF_ERROR(
           DequantizeInputs(context, input_indices_, quant_conversion_map_));
     }
+    std::cout << "TEST1\n";
+    *((int*)context->tensors[8].dims+1) /= 2;
+    *((int*)context->tensors[3].dims+1) /= 2; 
     RETURN_IF_ERROR(SetInputsAndOutputs(context));
+    std::cout << "TEST2\n";
     RETURN_IF_ERROR(runner_->Run());
+    std::cout << "TEST3\n";
 
     if (is_dequant_required) {
       RETURN_IF_ERROR(
@@ -241,12 +247,12 @@ class DelegateKernel {
       RETURN_IF_ERROR(runner_->SetInputObject(
           i, GetTensorObject(input_indices_[i], context)));
 
-  //std::cout << "delegate invoke : " << input_indices_[i] << std::endl;
+    //  std::cout << "delegate invoke : " << input_indices_[i] << std::endl;
     }
     for (int i = 0; i < output_indices_.size(); ++i) {
       RETURN_IF_ERROR(runner_->SetOutputObject(
           i, GetTensorObject(output_indices_[i], context)));
-            //std::cout << "delegate invoke : " << output_indices_[i] << std::endl;
+    //          std::cout << "delegate invoke : " << output_indices_[i] << std::endl;
     }
     return absl::OkStatus();
   }
@@ -276,6 +282,7 @@ class DelegateKernel {
                                GraphFloat32* graph,
                                std::vector<uint32_t>* input_refs,
                                std::vector<uint32_t>* output_refs) {
+    SFLAG();
     quant_conversion_map_.clear();
     if (delegate_->IsQuantOpsAllowed()) {
       RETURN_IF_ERROR(BuildFinalModel(context, delegate_params, graph,
@@ -296,7 +303,6 @@ class DelegateKernel {
     for (const auto& output : outputs) {
       output_refs->push_back(output->tensor.ref);
     }
-
     return absl::OkStatus();
   }
 

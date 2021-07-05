@@ -141,6 +141,8 @@ inline void Conv(const Eigen::ThreadPoolDevice& device,
                  float* output_data, const RuntimeShape& im2col_shape,
                  float* im2col_data) {
   // Nest profiling under "Conv", to aggregate with other kernels.
+  std::cout << "kernels/optimized/multithreaded_conv.h/Conv()\n";
+  
   ruy::profiler::ScopeLabel label("Conv");
   ruy::profiler::ScopeLabel inner_label("Multithreaded EigenTensor");
 
@@ -160,7 +162,7 @@ inline void Conv(const Eigen::ThreadPoolDevice& device,
 
   const int batches = MatchingDim(input_shape, 0, output_shape, 0);
   const int input_depth = MatchingDim(input_shape, 3, filter_shape, 3);
-  const int output_depth = MatchingDim(filter_shape, 0, output_shape, 3);
+  const int output_depth = MatchingDim(filter_shape, 0, output_shape, 3);// / 2;
   std::cout << "input_depth : " << input_depth << std::endl;
   std::cout << "output_depth : " << output_depth << std::endl;
   const int input_height = input_shape.Dims(1);

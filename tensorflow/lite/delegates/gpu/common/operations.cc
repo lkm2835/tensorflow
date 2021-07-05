@@ -27,6 +27,8 @@ limitations under the License.
 #include "tensorflow/lite/delegates/gpu/common/status.h"
 #include "tensorflow/lite/delegates/gpu/common/tensor.h"
 
+#include "tensorflow/lite/kmdebug.h"
+
 namespace tflite {
 namespace gpu {
 
@@ -589,6 +591,9 @@ BHWC CalculateOutputShape(const BHWC& input, const MeanAttributes& attr) {
 absl::Status CalculateOutputShape(const std::vector<BHWC>& input,
                                   const ConcatAttributes& attr,
                                   BHWC* output_shape) {
+#ifdef DEBUG
+  SFLAG();
+#endif
   BHWC new_shape = input[0];
   switch (attr.axis) {
     case Axis::CHANNELS:

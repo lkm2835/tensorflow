@@ -84,7 +84,8 @@ cc_library(
 cc_library(
     name = "model",
     srcs = ["model.cc"],
-    hdrs = ["model.h"],
+    hdrs = ["model.h",
+            "//tensorflow/lite:kmdebug.h"],
     deps = [
         ":shape",
         ":status",
@@ -234,7 +235,8 @@ cc_library(
 cc_library(
     name = "operations",
     srcs = ["operations.cc"],
-    hdrs = ["operations.h"],
+    hdrs = ["operations.h",
+            "//tensorflow/lite:kmdebug.h"],
     deps = [
         ":data_type",
         ":shape",

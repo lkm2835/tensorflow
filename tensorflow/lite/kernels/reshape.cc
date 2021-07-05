@@ -22,6 +22,8 @@ limitations under the License.
 #include "tensorflow/lite/kernels/internal/tensor.h"
 #include "tensorflow/lite/kernels/kernel_util.h"
 
+#include "tensorflow/lite/kmdebug.h"
+
 namespace tflite {
 namespace ops {
 namespace builtin {
@@ -35,6 +37,21 @@ TfLiteIntArray* GetOutputShape(TfLiteContext*, TfLiteNode*);
 
 TfLiteStatus ResizeOutput(TfLiteContext* context, TfLiteNode* node) {
   TfLiteIntArray* output_shape = GetOutputShape(context, node);
+    #ifdef DEBUG
+    std::cout << "inputs : ";
+    int tensor_index = node->inputs->data[0];
+    std::cout << tensor_index << " ";
+    for (int i = 1; i <= *((int*)context->tensors[tensor_index].dims); ++i) {
+      std::cout << *((int*)context->tensors[tensor_index].dims+i) << " ";
+    } std::cout << std::endl;
+
+    std::cout << "outputs : ";
+    tensor_index = node->outputs->data[0];
+    std::cout << tensor_index << " ";
+    for (int i = 1; i <= *((int*)context->tensors[tensor_index].dims); ++i) {
+      std::cout << *((int*)context->tensors[tensor_index].dims+i) << " ";
+    } std::cout << std::endl;
+  #endif
   std::unique_ptr<TfLiteIntArray, void (*)(TfLiteIntArray*)>
       scoped_output_shape(output_shape, TfLiteIntArrayFree);
 
@@ -60,12 +77,21 @@ TfLiteStatus ResizeOutput(TfLiteContext* context, TfLiteNode* node) {
     } else {
       num_output_elements *= value;
     }
+    std::cout << "value : " << value << std::endl;
   }
+    //num_output_elements /= 2;
+    std::cout << "output_shape : ";
+      std::cout << output_shape->data[0] << " ";
+    std::cout << output_shape->data[1] << " ";
+    std::cout << output_shape->data[2] << " ";
+    std::cout << output_shape->data[3] << " " << std::endl;
+  //std::cout << num_input_elements << " " << num_output_elements <<std::endl;
   if (stretch_dim != -1) {
     output_shape->data[stretch_dim] = num_input_elements / num_output_elements;
+  //  std::cout << "stretch_dim : " << stretch_dim << std::endl;
     num_output_elements *= output_shape->data[stretch_dim];
   }
-
+  //std::cout << num_input_elements << " " << num_output_elements <<std::endl;
   TF_LITE_ENSURE_EQ(context, num_input_elements, num_output_elements);
   return context->ResizeTensor(context, output, scoped_output_shape.release());
 }
@@ -120,6 +146,7 @@ TfLiteIntArray* GetOutputShape(TfLiteContext* context, TfLiteNode* node) {
 }
 
 TfLiteStatus Prepare(TfLiteContext* context, TfLiteNode* node) {
+  SFLAG();
   TF_LITE_ENSURE(context, NumInputs(node) == 1 || NumInputs(node) == 2);
   TF_LITE_ENSURE_EQ(context, NumOutputs(node), 1);
 

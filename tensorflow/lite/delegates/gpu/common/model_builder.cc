@@ -198,6 +198,9 @@ absl::Status CheckKernelsAndStrides(int kernel_h, int kernel_w, int strides_h,
 
 // Creates a simple node that holds tensor value.
 absl::Status NewConstNode(TensorFloat32 t, GraphFloat32* graph, Value** value) {
+#ifdef DEBUG
+  SFLAG();
+#endif
   ConstTensorAttributes attr;
   attr.tensor = std::move(t);
   Node* node = graph->NewNode();
@@ -481,10 +484,18 @@ class Conv2DOperationParser : public TFLiteOperationParser {
   absl::Status Parse(const TfLiteNode* tflite_node,
                      const TfLiteRegistration* registration,
                      GraphFloat32* graph, ObjectReader* reader) final {
+  #ifdef DEBUG
+    SFLAG();
+  #endif
     Node* node = graph->NewNode();
     node->operation.type = ToString(OperationType::CONVOLUTION_2D);
     RETURN_IF_ERROR(reader->AddInput(node, 0));
     RETURN_IF_ERROR(reader->AddOutputs(node));
+
+  #ifdef DEBUG
+    //const auto& shape = graph->FindOutputs(node->id)[0]->tensor.shape;
+    //std::cout << shape.b << " " << shape.h << " " << shape.w << " " << shape.c << std::endl;
+  #endif
 
     Convolution2DAttributes attr;
     const int runtime_inputs = reader->GetNumberOfRuntimeInputs();
@@ -495,6 +506,7 @@ class Conv2DOperationParser : public TFLiteOperationParser {
     }
     reader->ReadTensor(2, &attr.bias).IgnoreError();  // bias is optional
 
+
     const TfLiteConvParams* tf_options;
     RETURN_IF_ERROR(RetrieveBuiltinData(tflite_node, &tf_options));
     attr.strides = ToHW(tf_options->stride_height, tf_options->stride_width);
@@ -503,7 +515,13 @@ class Conv2DOperationParser : public TFLiteOperationParser {
     UpdatePadding(tf_options->padding,
                   graph->FindInputs(node->id)[0]->tensor.shape, &attr);
     RETURN_IF_ERROR(MaybeFuseActivation(tf_options->activation, graph, node));
+    if (node->operation.type == "convolution_2d") {
+      //auto& attrb = absl::any_cast<Convolution2DAttributes&>(node->operation.attributes);
+      //attr.weights.shape.o /= 2;
+    //attr.bias.shape.v /= 2;
+    }
     node->operation.attributes = std::move(attr);
+        
     return absl::OkStatus();
   }
 };
@@ -618,6 +636,7 @@ class DepthwiseConvolutionOperationParser : public TFLiteOperationParser {
                                const TfLiteTensor* filter,
                                const TfLiteTensor* output, int depth_multiplier,
                                DepthwiseConvolution2DAttributes* attr) {
+    SFLAG();
     const int input_depth = input->dims->data[3];
     const int filter_height = filter->dims->data[1];
     const int filter_width = filter->dims->data[2];
@@ -2859,8 +2878,8 @@ TfLiteIntArray* GetOpsToReplace(TfLiteContext* context, bool allow_quant_ops,
 	/*std::cout << " TEST ";
     std::cout << node->outputs->data[0] << std::endl;*/
 	//if(tflite::EnumNamesBuiltinOperator()[registration->builtin_code] == "DEPTHWISE_CONV_2D"){
-	if(node->outputs->data[0]== 1000){
-		std::cout << "TSETASETASETAES" << std::endl;
+	if(node->outputs->data[0]== 9){
+		//std::cout << "TSETASETASETAES" << std::endl;
 		const auto test_status = a();
 		if (!test_status.ok()) {
       	if (unsupported_details) {
@@ -2984,6 +3003,7 @@ absl::Status BuildModel(TfLiteContext* context,
                         const TfLiteDelegateParams* delegate_params,
                         GraphFloat32* graph,
                         absl::flat_hash_map<int, int>* quant_conversion_map) {
+  SFLAG();
   std::vector<std::unique_ptr<TFLiteOperationParser>> operations;
   std::vector<int> tflite_nodes;
   for (int i = 0; i < delegate_params->nodes_to_replace->size; ++i) {
@@ -3055,6 +3075,7 @@ absl::Status BuildModel(TfLiteContext* context,
 absl::Status BuildFinalModel(
     TfLiteContext* context, const TfLiteDelegateParams* delegate_params,
     GraphFloat32* graph, absl::flat_hash_map<int, int>* quant_conversion_map) {
+  SFLAG();
   RETURN_IF_ERROR(
       BuildModel(context, delegate_params, graph, quant_conversion_map));
 

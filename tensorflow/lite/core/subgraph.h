@@ -641,6 +641,9 @@ class Subgraph {
   // Delegated nodes are appended after all the original ones.
   std::vector<std::pair<TfLiteNode, TfLiteRegistration>>
       nodes_and_registration_;
+  std::vector<std::pair<TfLiteNode, TfLiteRegistration>>
+      nodes_and_registration_cpu;
+
 
   // Whether the model is consistent. That is to say if the inputs and outputs
   // of every node and the global inputs and outputs are valid indexes into

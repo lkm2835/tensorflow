@@ -119,7 +119,8 @@ cc_test(
 cc_library(
     name = "conv",
     srcs = ["conv.cc"],
-    hdrs = ["conv.h"],
+    hdrs = ["conv.h",
+            "//tensorflow/lite:kmdebug.h"],
     deps = [
         "//tensorflow/lite/delegates/gpu/common:convert",
         "//tensorflow/lite/delegates/gpu/common:operations",

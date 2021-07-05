@@ -31,6 +31,8 @@ limitations under the License.
 #include "tensorflow/lite/delegates/gpu/common/status.h"
 #include "tensorflow/lite/delegates/gpu/common/tensor.h"
 
+#include "tensorflow/lite/kmdebug.h"
+
 namespace tflite {
 namespace gpu {
 
@@ -112,6 +114,9 @@ Value* GraphFloat32::GetValue(ValueId id) const {
 }
 
 Node* GraphFloat32::NewNode() {
+#ifdef DEBUG
+  SFLAG();
+#endif
   const NodeId new_id = nodes_.size();
   NodeDef def;
   def.node = absl::make_unique<Node>(Node{static_cast<NodeId>(new_id), {}});

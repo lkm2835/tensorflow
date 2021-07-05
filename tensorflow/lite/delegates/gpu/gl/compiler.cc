@@ -109,11 +109,23 @@ class CompilerImpl : public Compiler {
       const GraphFloat32& graph,
       const std::unordered_set<int>& tflite_graph_io,  // NOLINT
       const ShaderCodeCallback& callback) final {
+#ifdef DEBUG
 	SFLAG();
-	//std::cout << "tensorflow/delegates/gpu/gl/compiler.cc/CompilerImpl::Compile()\n";
+#endif
     // It is important to have ids in a compiled graph identical to the given
     // graph.
+    for (auto& node: graph.nodes()) {
+      std::cout << node->operation.type << std::endl;
+    }
+
+    //if (graph.nodes()[0]->operation.type == "convolution_2d") {
+    //  auto& attrb = absl::any_cast<Convolution2DAttributes&>(graph.nodes()[0]->operation.attributes);
+    //  attrb.weights.shape.o -= 1;
+    //}
+
     RETURN_IF_ERROR(graph.MakeExactCopy(&compiled_graph_));
+
+
 
     // Clear out batch dimension for dynamic batch support.
     if (options_.dynamic_batch) {
@@ -122,6 +134,7 @@ class CompilerImpl : public Compiler {
       }
     }
 
+
     // Generate a shader for a node and all input/output objects.
     for (auto node : compiled_graph_.nodes()) {
       CompiledNodeAttributes attr;
@@ -129,13 +142,32 @@ class CompilerImpl : public Compiler {
       NodeShader::GenerationContext ctx = {&gpu_info_, options_,
                                            node->operation.type,
                                            node->operation.attributes};
+
+    //if (node->operation.type == "convolution_2d") {
+    //  auto& attrb = absl::any_cast<Convolution2DAttributes&>(node->operation.attributes);
+    //std::cout << "test : " <<attrb.weights.shape.h << " ";
+    //std::cout << attrb.weights.shape.w << " ";
+    //std::cout << attrb.weights.shape.o << " ";
+    //attrb.weights.shape.o -= 1;
+    //std::cout << attrb.weights.shape.i << " ";
+    //std::cout << std::endl;
+    //}
       for (const auto& tensor : graph.FindInputs(node->id)) {
         const auto& shape = tensor->tensor.shape;
-        ctx.input_shapes.push_back({shape.b, shape.h, shape.w, shape.c});
+        //if (node->operation.type == "relu") {
+        //  ctx.input_shapes.push_back({shape.b, shape.h, shape.w, shape.c-2});
+        //  std::cout << "FindInputs : " << shape.b << " " << shape.h << " " << shape.w << " " << shape.c-2 << " " << std::endl;
+        //}
+        //else {
+          ctx.input_shapes.push_back({shape.b, shape.h, shape.w, shape.c});
+          std::cout << "FindInputs : " << shape.b << " " << shape.h << " " << shape.w << " " << shape.c << " " << std::endl;
+        //}
       }
       for (const auto& tensor : graph.FindOutputs(node->id)) {
         const auto& shape = tensor->tensor.shape;
+        std::cout << graph.GetNode(node->id)->operation.type << std::endl;
         ctx.output_shapes.push_back({shape.b, shape.h, shape.w, shape.c});
+        std::cout << "FindOutputs : " << shape.b << " " << shape.h << " " << shape.w << " " << shape.c << " " << std::endl;
       }
       RETURN_IF_ERROR(node_shader_.GenerateCode(ctx, &attr.code));
       node->operation.attributes = std::move(attr);

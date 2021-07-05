@@ -69,7 +69,7 @@ absl::Status LoadOpenCL() {
         error_code));
   }
 #else
-  void* libopencl = dlopen("libOpenCL.so", RTLD_NOW | RTLD_LOCAL);
+  void* libopencl = dlopen("xlibOpenCL.so", RTLD_NOW | RTLD_LOCAL);//go to opengl
   if (libopencl) {
     LoadOpenCLFunctions(libopencl, false);
     return absl::OkStatus();

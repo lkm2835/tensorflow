@@ -204,14 +204,20 @@ GlProgram& GlProgram::operator=(GlProgram&& program) {
 GlProgram::~GlProgram() { Invalidate(); }
 
 absl::Status GlProgram::SetParameter(const Variable& param) {
+#ifdef DEBUG
+  SFLAG();
+#endif
   GLint uniform_location;
+  //std::cout << "set parameter : " << param.value.data() << std::endl;
   RETURN_IF_ERROR(TFLITE_GPU_CALL_GL(glGetUniformLocation, &uniform_location,
                                      id_, param.name.c_str()));
   return absl::visit(ParameterSetter{id_, uniform_location}, param.value);
 }
 
 absl::Status GlProgram::Dispatch(const uint3& workgroups) const {
+#ifdef DEBUG
   SFLAG();
+#endif
   if (workgroups.x == 0 || workgroups.y == 0 || workgroups.z == 0) {
     return absl::InvalidArgumentError("Invalid workgroups");
   }
