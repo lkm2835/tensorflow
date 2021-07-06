@@ -17,6 +17,8 @@ limitations under the License.
 
 #include "tensorflow/lite/delegates/gpu/common/status.h"
 
+#include "tensorflow/lite/kmdebug.h"
+
 namespace tflite {
 namespace gpu {
 namespace gl {

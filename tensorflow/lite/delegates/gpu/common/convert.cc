@@ -31,6 +31,8 @@ limitations under the License.
 #include "tensorflow/lite/delegates/gpu/common/types.h"
 #include "tensorflow/lite/delegates/gpu/common/util.h"
 
+#include "tensorflow/lite/kmdebug.h"
+
 namespace tflite {
 namespace gpu {
 namespace {
@@ -42,6 +44,7 @@ constexpr int kPiohw4ChannelsInPlane = 4;
 // Layout is Po,H,W,OI4x4.
 absl::Status ConvertToPHWO4I4(absl::Span<const float> in, const OHWI& shape,
                               absl::Span<float> out, bool reverse_space) {
+  SFLAG();
   if (in.size() != shape.DimensionsProduct()) {
     return absl::InvalidArgumentError(absl::StrCat(
         "ConvertToPHWO4I4: Input data size does not match expected size: ",
@@ -121,6 +124,7 @@ uint3 Get3DSizeForPHWO4I4(const OHWI& shape) {
 // Layout is Po,H,W,OI4x4.
 absl::Status ConvertToPHWO4I4(absl::Span<const float> in, const IHWO& shape,
                               absl::Span<float> out) {
+  SFLAG();
   if (in.size() != shape.DimensionsProduct()) {
     return absl::InvalidArgumentError(absl::StrCat(
         "ConvertToPHWO4I4: Input data size does not match expected size: ",

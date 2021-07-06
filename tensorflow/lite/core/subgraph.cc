@@ -487,6 +487,7 @@ TfLiteStatus Subgraph::GetExecutionPlan(struct TfLiteContext* context,
 }
 
 void Subgraph::FreeDelegatePartitioningData() {
+  SFLAG();
   for (auto& params : partitioning_preview_cache_) {
     TfLiteIntArrayFree(params.nodes_to_replace);
     TfLiteIntArrayFree(params.input_tensors);
@@ -748,10 +749,10 @@ TfLiteStatus Subgraph::AddNodeWithParameters(
   #endif
   std::cout << GetTFLiteOpName(*registration) << std::endl;
   if (strcmp(GetTFLiteOpName(*registration), "TfLiteGpuDelegateV2") == 0 ) {
-    /**((int*)context_.tensors[7].dims+1) /= 2;
-    *((int*)context_.tensors[3].dims+1) /= 2;
-    *((int*)context_.tensors[8].dims+4) /= 2; 
-    *((int*)context_.tensors[9].dims+2) /= 2; */
+    //*((int*)context_.tensors[7].dims+1) /= 2;
+    //*((int*)context_.tensors[3].dims+1) /= 2;
+    //*((int*)context_.tensors[8].dims+4) /= 2; 
+    //*((int*)context_.tensors[9].dims+2) /= 2; 
   }
   std::cout << "in: ";
   for(int i = 0; i < inputs.size(); ++i) {
@@ -1545,6 +1546,7 @@ void Subgraph::SwitchToDelegateContext() {
 }
 
 void Subgraph::SwitchToKernelContext() {
+  SFLAG();
   context_.GetNodeAndRegistration = [](struct TfLiteContext* context,
                                        int node_index, TfLiteNode** node,
                                        TfLiteRegistration** registration) {
@@ -1700,7 +1702,9 @@ TfLiteStatus Subgraph::ModifyGraphWithDelegate(TfLiteDelegate* delegate) {
   //*((int*)context_.tensors[3].dims+1) /= 2;
   //*((int*)context_.tensors[8].dims+4) /= 2; 
   //*((int*)context_.tensors[9].dims+2) = 26*26*16; 
-  //*((int*)context_.tensors[4].data.i32+1) /= 2;
+  std::cout << *(*(int**)(&context_.tensors[4].data)+1) << " " ;
+  //*(*(int**)(&context_.tensors[4].data)+1) /= 2;
+  std::cout << *(*(int**)(&context_.tensors[4].data)+1) << " " << std::endl;
   //std::cout << *((int*)context_.tensors[4].data.i32+1) << std::endl;
 
   std::cout << *((int*)context_.tensors[0].dims+0) << " ";
@@ -1827,7 +1831,6 @@ TfLiteStatus Subgraph::ModifyGraphWithDelegate(TfLiteDelegate* delegate) {
 
   // Remove additional context info.
   SwitchToKernelContext();
-
   TF_LITE_ENSURE_STATUS(reset_delegation_if_not_ok(status));
 
   if (!(delegate->flags & kTfLiteDelegateFlagsAllowDynamicTensors)) {

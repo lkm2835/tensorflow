@@ -123,6 +123,7 @@ class Delegate {
   }
 
   absl::Status BindBufferToTensor(GLuint ssbo, int tensor_index) {
+    SFLAG();
     int64_t bytes_size;
     RETURN_IF_ERROR(GetSSBOSize(ssbo, &bytes_size));
     return bhwc_objects_.RegisterBuffer(
@@ -133,6 +134,7 @@ class Delegate {
 
   absl::Status Prepare(TfLiteContext* context,
                        const TfLiteDelegateParams* delegate_params) {
+    SFLAG();
     // Extract TFLite delegate execution plan from the context and convert it
     // into GraphFloat32.
     GraphFloat32 graph;

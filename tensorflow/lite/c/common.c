@@ -19,6 +19,10 @@ limitations under the License.
 #include <string.h>
 #endif  // TF_LITE_STATIC_MEMORY
 
+#include <stdio.h>
+
+//#include "tensorflow/lite/kmdebug.h"
+
 int TfLiteIntArrayGetSizeInBytes(int size) {
   static TfLiteIntArray dummy;
   return sizeof(dummy) + sizeof(dummy.data[0]) * size;
@@ -173,6 +177,8 @@ void TfLiteTensorReset(TfLiteType type, const char* name, TfLiteIntArray* dims,
 }
 
 void TfLiteTensorRealloc(size_t num_bytes, TfLiteTensor* tensor) {
+  //printf("realloc : ");
+  //printf("%d\n", num_bytes);
   if (tensor->allocation_type != kTfLiteDynamic &&
       tensor->allocation_type != kTfLitePersistentRo) {
     return;

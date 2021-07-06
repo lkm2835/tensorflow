@@ -26,6 +26,8 @@ limitations under the License.
 #include "tensorflow/lite/delegates/gpu/gl/gl_errors.h"
 #include "tensorflow/lite/delegates/gpu/gl/portable_gl31.h"
 
+#include <iostream>
+
 namespace tflite {
 namespace gpu {
 namespace gl {
@@ -44,7 +46,7 @@ class GlBuffer {
         id_(id),
         bytes_size_(bytes_size),
         offset_(offset),
-        has_ownership_(has_ownership) {}
+        has_ownership_(has_ownership) {std::cout << "GLBUFFER\n"<<bytes_size << std::endl;}
 
   // Creates invalid buffer.
   GlBuffer() : GlBuffer(GL_INVALID_ENUM, GL_INVALID_INDEX, 0, 0, false) {}
@@ -271,6 +273,9 @@ absl::Status CreateReadOnlyShaderStorageBuffer(absl::Span<const T> data,
 
 template <typename T>
 absl::Status GlBuffer::Read(absl::Span<T> data) const {
+  std::cout << "\nREAD\n\n";
+  //bytes_size_ /= 2;
+  std::cout << data.size() * sizeof(T) << bytes_size() << std::endl;
   if (data.size() * sizeof(T) < bytes_size()) {
     return absl::InvalidArgumentError(
         "Read from buffer failed. Destination data is shorter than buffer.");
@@ -284,10 +289,12 @@ absl::Status GlBuffer::Read(absl::Span<T> data) const {
 
 template <typename T>
 absl::Status GlBuffer::Write(absl::Span<const T> data) {
+  std::cout << "\nWRITE\n\n";
   if (data.size() * sizeof(T) > bytes_size_) {
     return absl::InvalidArgumentError(
         "Write to buffer failed. Source data is larger than buffer.");
   }
+  //bytes_size_ /= 2; std::cout << bytes_size_ << std::endl;
   gl_buffer_internal::BufferBinder binder(target_, id_);
   return TFLITE_GPU_CALL_GL(glBufferSubData, target_, offset_, bytes_size_,
                             data.data());

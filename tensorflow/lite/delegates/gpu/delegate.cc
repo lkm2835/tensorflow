@@ -133,11 +133,11 @@ class DelegateKernel {
     RETURN_IF_ERROR(InitializeGraph(context, delegate_params, &graph,
                                     &input_refs, &output_refs));
 
-    
     std::unique_ptr<InferenceBuilder> builder;
     bool graph_is_destroyed;
-    const int experimental_flags = delegate_->options().experimental_flags;
-    if (experimental_flags & TFLITE_GPU_EXPERIMENTAL_FLAGS_CL_ONLY) {
+    const int experimental_flags = delegate_->options().experimental_flags;//+4;
+    //std::cout << experimental_flags << std::endl << TFLITE_GPU_EXPERIMENTAL_FLAGS_GL_ONLY << std::endl;
+    if (experimental_flags & TFLITE_GPU_EXPERIMENTAL_FLAGS_CL_ONLY) {    
       RETURN_IF_ERROR(
           InitializeOpenClApi(&graph, &builder, &graph_is_destroyed));
     } else if (experimental_flags & TFLITE_GPU_EXPERIMENTAL_FLAGS_GL_ONLY) {
@@ -155,6 +155,7 @@ class DelegateKernel {
         if (graph_is_destroyed) {
           RETURN_IF_ERROR(InitializeGraph(context, delegate_params, &graph2,
                                           &input_refs, &output_refs));
+
         }
         RETURN_IF_ERROR(InitializeOpenGlApi(
             graph_is_destroyed ? &graph2 : &graph, &builder));
@@ -223,8 +224,8 @@ class DelegateKernel {
           DequantizeInputs(context, input_indices_, quant_conversion_map_));
     }
     std::cout << "TEST1\n";
-    *((int*)context->tensors[8].dims+1) /= 2;
-    *((int*)context->tensors[3].dims+1) /= 2; 
+    //*((int*)context->tensors[8].dims+1) /= 2;
+    //*((int*)context->tensors[3].dims+1) /= 2; 
     RETURN_IF_ERROR(SetInputsAndOutputs(context));
     std::cout << "TEST2\n";
     RETURN_IF_ERROR(runner_->Run());
@@ -273,6 +274,9 @@ class DelegateKernel {
     auto& tensor = context->tensors[index];
     //std::cout << "tflitegpudelegatev2 input : " << *(float*)tensor.data.data << std::endl;
     //std::cout << "makecpumemory : " << ((float*)tensor.data.raw)[0] << std::endl;
+    std::cout << "tensor idx : " << index << std::endl;
+    std::cout << "tensor.bytes : " << tensor.bytes << std::endl;
+    if (index == 8) return MakeCpuMemory(absl::MakeSpan(tensor.data.raw, tensor.bytes));
     return MakeCpuMemory(absl::MakeSpan(tensor.data.raw, tensor.bytes));
   }
 
@@ -309,9 +313,11 @@ class DelegateKernel {
   absl::Status InitializeOpenClApi(GraphFloat32* graph,
                                    std::unique_ptr<InferenceBuilder>* builder,
                                    bool* graph_is_destroyed) {
+    SFLAG();
     *graph_is_destroyed = false;
     cl::InferenceEnvironmentOptions env_options;
     cl::InferenceEnvironmentProperties properties;
+
     RETURN_IF_ERROR(cl::NewInferenceEnvironment(env_options, &cl_environment_,
                                                 &properties));
     auto delegate_options = delegate_->options();
@@ -341,6 +347,7 @@ class DelegateKernel {
 
   absl::Status InitializeOpenGlApi(GraphFloat32* graph,
                                    std::unique_ptr<InferenceBuilder>* builder) {
+    SFLAG();
 #ifndef CL_DELEGATE_NO_GL
     gl::InferenceEnvironmentOptions env_options;
     gl::InferenceEnvironmentProperties properties;

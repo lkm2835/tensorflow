@@ -53,6 +53,7 @@ std::string GetShaderHeader(uint3 localsize) {
 
 // Wraps given SSBO into GlBuffer object that does not have ownership.
 absl::Status WrapSSBO(OpenGlBuffer ssbo, GlBuffer* buffer) {
+  SFLAG();
   int64_t size_bytes;
   RETURN_IF_ERROR(GetSSBOSize(ssbo.id, &size_bytes));
   *buffer = GlBuffer(GL_SHADER_STORAGE_BUFFER, ssbo.id, size_bytes, 0, false);
@@ -60,6 +61,7 @@ absl::Status WrapSSBO(OpenGlBuffer ssbo, GlBuffer* buffer) {
 }
 
 absl::Status MaybeAllocateGlBuffer(const TensorObjectDef& def, GlBuffer* ssbo) {
+  SFLAG();
   if (def.object_def.object_type != gpu::ObjectType::OPENGL_SSBO) {
     return absl::InvalidArgumentError("Tensor object is not GL SSBO");
   }
@@ -202,7 +204,9 @@ class DefaultTensorTie : public TensorTie {
   }
 
   absl::Status MaybeAllocateInternalObject() {
+    SFLAG();
     const TensorObjectDef& d = def().internal_def;
+    std::cout << "maybe : " << d.dimensions.c << std::endl;
     if (d.object_def.user_provided) {
       return absl::OkStatus();
     }
@@ -665,7 +669,6 @@ class InferenceEnvironmentImpl : public InferenceEnvironment {
 
   absl::Status Init() {
     RETURN_IF_ERROR(EglEnvironment::NewEglEnvironment(&egl_env_));
-
     RETURN_IF_ERROR(RequestGpuInfo(&gpu_info_));
     properties_.is_opengl_available = IsOpenGl31OrAbove(gpu_info_);
     if (!properties_.is_opengl_available) {

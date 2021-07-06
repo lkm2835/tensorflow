@@ -79,7 +79,7 @@ TfLiteStatus ResizeOutput(TfLiteContext* context, TfLiteNode* node) {
     }
     std::cout << "value : " << value << std::endl;
   }
-    //num_output_elements /= 2;
+    num_output_elements /= 2;
     std::cout << "output_shape : ";
       std::cout << output_shape->data[0] << " ";
     std::cout << output_shape->data[1] << " ";

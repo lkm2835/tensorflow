@@ -194,7 +194,6 @@ class CompilerImpl : public Compiler {
     if (!transformer.Apply("remove_inplace_updates", &remove_inplace_updates)) {
       return absl::InternalError("remove_inplace_updates failed");
     }
-
     // Prepare internal objects.
     absl::flat_hash_map<ValueId, Object> objects;
     for (auto value : compiled_graph_.values()) {

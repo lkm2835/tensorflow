@@ -518,7 +518,7 @@ class Conv2DOperationParser : public TFLiteOperationParser {
     if (node->operation.type == "convolution_2d") {
       //auto& attrb = absl::any_cast<Convolution2DAttributes&>(node->operation.attributes);
       //attr.weights.shape.o /= 2;
-    //attr.bias.shape.v /= 2;
+      //attr.bias.shape.v /= 2;
     }
     node->operation.attributes = std::move(attr);
         

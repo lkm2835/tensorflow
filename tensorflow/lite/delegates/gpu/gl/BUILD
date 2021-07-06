@@ -196,7 +196,8 @@ cc_library(
 cc_library(
     name = "gl_buffer",
     srcs = ["gl_buffer.cc"],
-    hdrs = ["gl_buffer.h"],
+    hdrs = ["gl_buffer.h",
+            "//tensorflow/lite:kmdebug.h"],
     deps = [
         ":gl_call",
         ":gl_errors",
@@ -345,7 +346,8 @@ cc_library(
 cc_library(
     name = "object_manager",
     srcs = ["object_manager.cc"],
-    hdrs = ["object_manager.h"],
+    hdrs = ["object_manager.h",
+            "//tensorflow/lite:kmdebug.h"],
     deps = [
         ":gl_buffer",
         ":gl_texture",

@@ -29,6 +29,7 @@ namespace {
 // and OpenGL ES is reinitialized. See eglMakeCurrent
 
 absl::Status InitDisplay(EGLDisplay* egl_display) {
+  
   RETURN_IF_ERROR(
       TFLITE_GPU_CALL_EGL(eglGetDisplay, egl_display, EGL_DEFAULT_DISPLAY));
   if (*egl_display == EGL_NO_DISPLAY) {

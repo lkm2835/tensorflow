@@ -124,7 +124,7 @@ cc_library(
     srcs = ["common.c"],
     hdrs = [
         "builtin_op_data.h",
-        "common.h",
+        "common.h"
     ],
     compatible_with = get_compatible_with_portable(),
     deps = ["//tensorflow/lite:builtin_ops"],

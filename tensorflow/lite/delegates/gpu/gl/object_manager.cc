@@ -20,6 +20,8 @@ limitations under the License.
 #include "tensorflow/lite/delegates/gpu/common/convert.h"
 #include "tensorflow/lite/delegates/gpu/common/status.h"
 
+#include "tensorflow/lite/kmdebug.h"
+
 namespace tflite {
 namespace gpu {
 namespace gl {
@@ -48,10 +50,14 @@ absl::Status CopyFromPHWC4Buffer(const GlBuffer& buffer,
 }
 
 absl::Status ObjectManager::RegisterBuffer(uint32_t id, GlBuffer buffer) {
+  SFLAG();
   if (id >= buffers_.size()) {
     buffers_.resize(id + 1);
   }
   buffers_[id] = absl::make_unique<GlBuffer>(std::move(buffer));
+  for (const auto& buffer : buffers_){
+    std::cout << "BUFFER : " << buffer->bytes_size() << std::endl;
+  }
   return absl::OkStatus();
 }
 

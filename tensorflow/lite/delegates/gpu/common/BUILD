@@ -8,7 +8,8 @@ package(
 cc_library(
     name = "convert",
     srcs = ["convert.cc"],
-    hdrs = ["convert.h"],
+    hdrs = ["convert.h",
+            "//tensorflow/lite:kmdebug.h"],
     deps = [
         ":data_type",
         ":shape",
