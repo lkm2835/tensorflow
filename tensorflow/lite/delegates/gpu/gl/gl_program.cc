@@ -218,6 +218,7 @@ absl::Status GlProgram::Dispatch(const uint3& workgroups) const {
 #ifdef DEBUG
   SFLAG();
 #endif
+std::cout << "workgruops : " << workgroups.x << " " << workgroups.y << " " << workgroups.z << std::endl;
   if (workgroups.x == 0 || workgroups.y == 0 || workgroups.z == 0) {
     return absl::InvalidArgumentError("Invalid workgroups");
   }

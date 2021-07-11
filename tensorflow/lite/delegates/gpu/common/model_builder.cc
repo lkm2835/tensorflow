@@ -521,6 +521,7 @@ class Conv2DOperationParser : public TFLiteOperationParser {
       //attr.bias.shape.v /= 2;
     }
     node->operation.attributes = std::move(attr);
+    std::cout << "Node ID : " << node->id << std::endl;
         
     return absl::OkStatus();
   }

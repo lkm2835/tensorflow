@@ -605,6 +605,7 @@ class InferenceBuilderImpl : public InferenceBuilder {
             shader_index = it->second;
           }
           auto num_workgroups = DivideRoundUp(code.workload, workgroup);
+          std::cout << "CODE : " << shader_src << std::endl;
           return runtime_ptr->AddProgram(shaders[shader_index], code.parameters,
                                          code.objects, num_workgroups);
         }));

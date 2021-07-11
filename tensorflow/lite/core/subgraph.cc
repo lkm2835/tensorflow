@@ -711,9 +711,49 @@ TfLiteStatus Subgraph::AllocateTensors() {
   // variable tensors. They should call `ResetVariableTensors` directly
   // instead.
   ResetVariableTensors();
-  //*((int*)context_.tensors[12].dims+1) /= 5;
-  //*((int*)context_.tensors[3].dims+1) -= 30; 
-  //*((int*)context_.tensors[7].dims+1) -= 30;
+
+
+  
+  //*((int*)context_.tensors[10].dims+4) /= 2;
+  //*((int*)context_.tensors[4].dims+1) /= 2; 
+  //*((int*)context_.tensors[8].dims+1) /= 2;
+  //*((int*)context_.tensors[9].dims+4) /= 2;
+
+  for (int execution_plan_index = 0;
+       execution_plan_index < execution_plan_.size(); execution_plan_index++) {
+    int node_index = execution_plan_[execution_plan_index];
+    TfLiteNode& node = nodes_and_registration_[node_index].first; KMNODE();
+    const TfLiteRegistration& registration =
+        nodes_and_registration_[node_index].second;
+
+   #ifdef DEBUG
+    std::cout << std::endl << GetTFLiteOpName(registration) << std::endl;
+    std::cout << "inputs : ";
+    int tensor_index = node.inputs->data[0];
+    for (int i = 1; i <= *((int*)context_.tensors[tensor_index].dims); ++i) {
+      std::cout << *((int*)context_.tensors[tensor_index].dims+i) << " ";
+    } std::cout << std::endl;
+
+    std::cout << "inputs : ";
+    tensor_index = node.inputs->data[1];
+    for (int i = 1; i <= *((int*)context_.tensors[tensor_index].dims); ++i) {
+      std::cout << *((int*)context_.tensors[tensor_index].dims+i) << " ";
+    } std::cout << std::endl;
+
+    std::cout << "outputs : ";
+    tensor_index = node.outputs->data[0];
+    for (int i = 1; i <= *((int*)context_.tensors[tensor_index].dims); ++i) {
+      std::cout << *((int*)context_.tensors[tensor_index].dims+i) << " ";
+    } std::cout << std::endl;
+    #endif
+
+  }
+
+  //int* test = (int*)context_.tensors[4].data.data;
+  //test[1] /= 2;
+  // std::cout << test[1];
+  //std::cout << "test: " << (*(int*)(context_.tensors[4].data.data) << std::endl;
+  //std::cout << "why : " << *(*(int**)(&context_.tensors[4].data)+1)/2 << std::endl;// /= 2;
   return kTfLiteOk;
 }
 
@@ -747,6 +787,8 @@ TfLiteStatus Subgraph::AddNodeWithParameters(
   #ifdef DEBUG
     SFLAG();
   #endif
+  
+
   std::cout << GetTFLiteOpName(*registration) << std::endl;
   if (strcmp(GetTFLiteOpName(*registration), "TfLiteGpuDelegateV2") == 0 ) {
     //*((int*)context_.tensors[7].dims+1) /= 2;
@@ -764,10 +806,10 @@ TfLiteStatus Subgraph::AddNodeWithParameters(
 	std::cout << outputs[i] << " ";
   } std::cout << std::endl;
 
-    std::cout << "intermediates: ";
-  for(int i = 0; i < intermediates.size(); ++i) {
-	std::cout << intermediates[i] << " ";
-  } std::cout << std::endl;
+  //  std::cout << "intermediates: ";
+  //for(int i = 0; i < intermediates.size(); ++i) {
+	//std::cout << intermediates[i] << " ";
+  //} std::cout << std::endl;
   std::unique_ptr<void, decltype(free)*> builtin_data_deleter(builtin_data,
                                                               free);
   if (state_ == kStateInvokableAndImmutable) {
@@ -1092,7 +1134,13 @@ TfLiteStatus Subgraph::Invoke() {
         if (registration.builtin_code == kTfLiteBuiltinReshape && i == 1) {
           // In general, having a tensor here with no buffer will be an error.
           // However, for the reshape operator, the second input tensor is only
-          // used for the shape, not for the data. Thus, null buffer is ok.
+          // used for the shapfor (int execution_plan_index = 0;
+       execution_plan_index < execution_plan_.size(); execution_plan_index++) {
+    int node_index = execution_plan_[execution_plan_index];
+    TfLiteNode& node = nodes_and_registration_[node_index].first; KMNODE();
+    const TfLiteRegistration& registration =
+        nodes_and_registration_[node_index].second;
+  }e, not for the data. Thus, null buffer is ok.
           continue;
         } else {
           // In all other cases, we need to return an error as otherwise we will
@@ -1236,6 +1284,17 @@ TfLiteStatus Subgraph::Invoke() {
     for (int i = 1; i <= *((int*)context_.tensors[tensor_index].dims); ++i) {
       std::cout << *((int*)context_.tensors[tensor_index].dims+i) << " ";
     } std::cout << std::endl;
+/*
+    if (strcmp(GetTFLiteOpName(registration), "CONV_2D") == 0) {
+      tensor_index = node.inputs->data[1]; // filter
+      *((int*)context_.tensors[tensor_index].dims+1) /= 2;
+
+      tensor_index = node.inputs->data[2]; // bias
+      *((int*)context_.tensors[tensor_index].dims+1) /= 2; 
+
+      tensor_index = node.outputs->data[0]; // output depth
+      *((int*)context_.tensors[tensor_index].dims+4) /= 2; 
+    }*/
   #endif
     if (OpInvoke(registration, &node) != kTfLiteOk) {	
 	    return ReportOpError(&context_, node, registration, node_index,
@@ -1753,8 +1812,8 @@ TfLiteStatus Subgraph::ModifyGraphWithDelegate(TfLiteDelegate* delegate) {
         "ModifyGraphWithDelegate is disallowed when graph is immutable.");
 	return kTfLiteApplicationError;
   }
-*((int*)context_.tensors[8].dims+4) *= 2; 
-  *((int*)context_.tensors[9].dims+2) = 26*26*32; 
+//*((int*)context_.tensors[8].dims+4) *= 2; 
+  //*((int*)context_.tensors[9].dims+2) = 26*26*32; 
   if (!(delegate->flags & kTfLiteDelegateFlagsAllowDynamicTensors)) {
     int last_execution_plan_index_prepared;
     TF_LITE_ENSURE_OK(

@@ -167,7 +167,7 @@ class CompilerImpl : public Compiler {
         const auto& shape = tensor->tensor.shape;
         std::cout << graph.GetNode(node->id)->operation.type << std::endl;
         ctx.output_shapes.push_back({shape.b, shape.h, shape.w, shape.c});
-        std::cout << "FindOutputs : " << shape.b << " " << shape.h << " " << shape.w << " " << shape.c << " " << std::endl;
+        std::cout << "FindOutputs : " << ctx.output_shapes[0][0] << " " << ctx.output_shapes[0][1] << " " << ctx.output_shapes[0][2] << " " << ctx.output_shapes[0][3] << " " << std::endl;
       }
       RETURN_IF_ERROR(node_shader_.GenerateCode(ctx, &attr.code));
       node->operation.attributes = std::move(attr);

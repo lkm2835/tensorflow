@@ -133,6 +133,7 @@ class Convolution : public NodeShader {
       objects.push_back({"bias", MakeReadonlyObject(attr.bias.data)});
     }
 
+    //std::cout << "GCODE : " << weights.o << " " << ctx.input_shapes[0][3] <<  std::endl;
     *generated_code = {
         /*parameters=*/std::move(parameters),
         /*objects=*/std::move(objects),

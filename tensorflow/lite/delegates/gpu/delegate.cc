@@ -224,7 +224,7 @@ class DelegateKernel {
           DequantizeInputs(context, input_indices_, quant_conversion_map_));
     }
     std::cout << "TEST1\n";
-    //*((int*)context->tensors[8].dims+1) /= 2;
+    //*((int*)context->tensors[8].dims+1) mo
     //*((int*)context->tensors[3].dims+1) /= 2; 
     RETURN_IF_ERROR(SetInputsAndOutputs(context));
     std::cout << "TEST2\n";
