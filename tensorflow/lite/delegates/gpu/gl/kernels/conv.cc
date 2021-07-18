@@ -90,7 +90,17 @@ class Convolution : public NodeShader {
     bool non_empty_padding =
         attr.padding.appended.h != 0 || attr.padding.appended.w != 0 ||
         attr.padding.prepended.h != 0 || attr.padding.prepended.w != 0;
-
+/*
+    std::vector<float> temp = ConvertToPHWO4I4(attr.weights);
+    for (const auto& test : temp) {
+      if (test != 0)
+        std::cout << std::endl;
+      std::cout << test << " ";
+    }std::cout << std::endl;
+    temp.resize(temp.size()/8);
+    for (int i = 0; i < 0; ++i) {
+      temp.push_back(0);
+    }*/
     std::vector<std::pair<std::string, Object>> objects = {
         {"weights", MakeReadonlyObject(Get3DSizeForPHWO4I4(attr.weights.shape),
                                        ConvertToPHWO4I4(attr.weights))}};

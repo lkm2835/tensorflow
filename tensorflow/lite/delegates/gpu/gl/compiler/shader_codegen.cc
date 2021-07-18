@@ -96,7 +96,7 @@ absl::Status ShaderCodegen::Build(CompiledNodeAttributes attr,
   RETURN_IF_ERROR(add_uniform_parameter(
       {"workload_x", static_cast<int32_t>(attr.code.workload.x)}));
   RETURN_IF_ERROR(add_uniform_parameter(
-      {"workload_y", static_cast<int32_t>(attr.code.workload.y/2)}));
+      {"workload_y", static_cast<int32_t>(attr.code.workload.y)}));
   RETURN_IF_ERROR(add_uniform_parameter(
       {"workload_z", static_cast<int32_t>(attr.code.workload.z)}));
   std::cout << "attr.code.workload : " << attr.code.workload.x << " " << attr.code.workload.y << " " << attr.code.workload.z << std::endl;

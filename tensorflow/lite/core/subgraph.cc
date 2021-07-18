@@ -32,6 +32,8 @@ limitations under the License.
 
 #include "tensorflow/lite/kmdebug.h"
 #include "tensorflow/lite/kmcontext.h"
+#include <ctime>
+#include <vector>
 //extern char  kmdir[256];
 //extern KmDebug kmdebug;
 
@@ -712,11 +714,10 @@ TfLiteStatus Subgraph::AllocateTensors() {
   // instead.
   ResetVariableTensors();
 
-
   
-  //*((int*)context_.tensors[10].dims+4) /= 2;
-  //*((int*)context_.tensors[4].dims+1) /= 2; 
-  //*((int*)context_.tensors[8].dims+1) /= 2;
+  //*((int*)context_.tensors[8].dims+4) -= 3;
+  //*((int*)context_.tensors[7].dims+1) -= 1; 
+  //*((int*)context_.tensors[3].dims+1) -= 1;
   //*((int*)context_.tensors[9].dims+4) /= 2;
 
   for (int execution_plan_index = 0;
@@ -1135,12 +1136,7 @@ TfLiteStatus Subgraph::Invoke() {
           // In general, having a tensor here with no buffer will be an error.
           // However, for the reshape operator, the second input tensor is only
           // used for the shapfor (int execution_plan_index = 0;
-       execution_plan_index < execution_plan_.size(); execution_plan_index++) {
-    int node_index = execution_plan_[execution_plan_index];
-    TfLiteNode& node = nodes_and_registration_[node_index].first; KMNODE();
-    const TfLiteRegistration& registration =
-        nodes_and_registration_[node_index].second;
-  }e, not for the data. Thus, null buffer is ok.
+  // used for the shape, not for the data. Thus, null buffer is ok.
           continue;
         } else {
           // In all other cases, we need to return an error as otherwise we will
@@ -1168,15 +1164,34 @@ TfLiteStatus Subgraph::Invoke() {
  //     context_.tensors[node.inputs->data[0]].dims->data[3] << std::endl;
 
     //std::cout << *(float*)context_.tensors[node.inputs->data[1]].data.data << std::endl;
-    if (OpInvoke(registration, &node) != kTfLiteOk) {	
-	    return ReportOpError(&context_, node, registration, node_index,
-                           "failed to invoke");
-    }
+    
     std::cout << "input : " << node.inputs->data[0] << " ";
     std::cout << node.inputs->data[1] << " ";
     std::cout << node.inputs->data[2] << std::endl;
 
     std::cout << "output : " << node.outputs->data[0] << std::endl;
+
+    std::cout << "inputs : ";
+    int tensor_index = node.inputs->data[0];
+    for (int i = 1; i <= *((int*)context_.tensors[tensor_index].dims); ++i) {
+      std::cout << *((int*)context_.tensors[tensor_index].dims+i) << " ";
+    } std::cout << std::endl;
+    tensor_index = node.inputs->data[1];
+    for (int i = 1; i <= *((int*)context_.tensors[tensor_index].dims); ++i) {
+      std::cout << *((int*)context_.tensors[tensor_index].dims+i) << " ";
+    } std::cout << std::endl;
+
+    std::cout << "outputs : ";
+    tensor_index = node.outputs->data[0];
+    for (int i = 1; i <= *((int*)context_.tensors[tensor_index].dims); ++i) {
+      std::cout << *((int*)context_.tensors[tensor_index].dims+i) << " ";
+    } std::cout << std::endl;
+
+
+    if (OpInvoke(registration, &node) != kTfLiteOk) {	
+	    return ReportOpError(&context_, node, registration, node_index,
+                           "failed to invoke");
+    }
 
     std::cout << *(float*)context_.tensors[node.outputs->data[0]].data.data << std::endl;
     //std::cout << *(float*)context_.tensors[node.outputs->data[0]].data.data << std::endl;
@@ -1295,10 +1310,137 @@ TfLiteStatus Subgraph::Invoke() {
       tensor_index = node.outputs->data[0]; // output depth
       *((int*)context_.tensors[tensor_index].dims+4) /= 2; 
     }*/
+
+    //std::cout << "TEST :::: : " << context_.tensors[tensor_index].params.scale << std::endl;
+    std::cout << std::fixed;
+    std::cout.precision(5);
+    if (strcmp(GetTFLiteOpName(registration), "CONV_2D") == 0) {
+      int tensor_index = node.inputs->data[0];
+      int parameter = context_.tensors[tensor_index].bytes / 4;
+      int num = 1;
+      
+      for (int i = 0; i <= parameter; ++i) {
+        if (i % 784 == 0) std::cout << num++ << std::endl;
+        float data = *((float*)context_.tensors[tensor_index].data.data+i);
+        if (data == 0)
+          std::cout << data << " ";
+        else
+          std::cout << "\e[92m" << data << "\e[97m" <<  " ";
+
+        if (i % 28 == 27) std::cout << std::endl;
+        if (i % 784 == 783) std::cout << std::endl;
+      } std::cout << std::endl;
+
+      //*((int*)context_.tensors[7].dims+1) -= 3;
+      //context_.tensors[7].data.data = (void*)context_.tensors[7].data.data+9;
+      std::cout << "TEST" << &context_.tensors[7].data << std::endl;
+      std::cout << "TEST" << context_.tensors[7].data.data << std::endl;
+      //*((int*)context_.tensors[3].dims+1) -= 3;
+      //*((int*)context_.tensors[8].dims+4) -= 1;
+    }
+    
+    if (strcmp(GetTFLiteOpName(registration), "CONV_2D") == 0) {
+      int tensor_index = node.inputs->data[1];
+      int parameter = context_.tensors[tensor_index].bytes / 4;
+      int num = 1;
+      for (int i = 0; i <= parameter; ++i) {
+        if (i % 9 == 0) std::cout << num++ << std::endl;
+        //if (num < 31) continue;
+        std::cout << "\e[92m" << *((float*)context_.tensors[tensor_index].data.data+i) << "\e[97m" <<  " ";
+        if (i % 3 == 2) std::cout << std::endl;
+        if (i % 9 == 8) std::cout << std::endl;
+      } std::cout << std::endl;
+    }
+    if (strcmp(GetTFLiteOpName(registration), "CONV_2D") == 0) {
+      int tensor_index = node.inputs->data[2];
+      int parameter = context_.tensors[tensor_index].bytes / 4;
+      int num = 1;
+      for (int i = 0; i <= parameter; ++i) {
+        //if (num < 31) continue;
+        std::cout << "\e[92m" << *((float*)context_.tensors[tensor_index].data.data+i) << "\e[97m" <<  " ";
+      } std::cout << std::endl;
+    }
+
+    clock_t start = clock();
   #endif
     if (OpInvoke(registration, &node) != kTfLiteOk) {	
 	    return ReportOpError(&context_, node, registration, node_index,
                            "failed to invoke");
+    }
+    if (strcmp(GetTFLiteOpName(registration), "CONV_2D") == 0) {
+      int tensor_index = node.outputs->data[0];
+      int parameter = context_.tensors[tensor_index].bytes / 4;
+      int num = 1;
+      /*for (int k = 0; k < 8; ++k){
+        std::cout << k+1 << std::endl;
+        for (int i = 0; i < 26; ++i) {
+          for (int j = 0; j < 26; ++j) {
+            float data = *((float*)context_.tensors[tensor_index].data.data + (k*26*26 + i*26 + j));
+            if (data == 0)
+              std::cout << data << " ";
+            else
+              std::cout << "\e[92m" << data << "\e[97m" <<  " ";
+          }
+          std::cout << std::endl;
+        }
+        std::cout << std::endl;
+      }*/
+      int d = 1;
+      std::vector<std::vector<float>> out;
+      for (int i = 0; i < d; ++i) {
+        std::vector<float> temp(26*26);
+        out.push_back(temp);
+      }
+      for (int i = 0; i <= parameter /4 * d; ++i) {
+        float data = *((float*)context_.tensors[tensor_index].data.data+i);
+        out[i%d][i/d] = data;
+      }
+      
+      for (int i = 0; i < d; ++i) {
+        std::cout << i+1 << std::endl;
+        int num = 0;
+        for (const auto& t : out[i]) {
+          num += 1;
+          if (t == 0)
+            std::cout << t << " ";
+          else
+            std::cout << "\e[92m" << t << "\e[97m" <<  " ";
+          if (num % 26 == 0) std::cout << std::endl;
+        } 
+        std::cout << std::endl;
+      }std::cout << std::endl;
+      /*for (int i = 0; i <= parameter; ++i) {
+        if (i % 676 == 0) std::cout << num++ << std::endl;
+        float data = *((float*)context_.tensors[tensor_index].data.data+i);
+        if (data == 0)
+          std::cout << data << " ";
+        else
+          std::cout << "\e[92m" << data << "\e[97m" <<  " ";
+        if (i % 26 == 25) std::cout << std::endl;
+        if (i % 676 == 675) std::cout << std::endl;
+      } std::cout << std::endl;*/
+    }
+
+    /*if (strcmp(GetTFLiteOpName(registration), "RESHAPE") == 0) {
+      int tensor_index = node.inputs->data[0];
+      int parameter = context_.tensors[tensor_index].bytes / 4;
+      int num = 1;
+      for (int i = 0; i <= parameter; ++i) {
+        if (i % 676 == 0) std::cout << num++ << std::endl;
+        //if (num < 31) continue;
+        float data = *((float*)context_.tensors[tensor_index].data.data+i);
+        if (data == 0)
+          std::cout << data << " ";
+        else
+          std::cout << "\e[92m" << data << "\e[97m" <<  " ";
+        if (i % 26 == 25) std::cout << std::endl;
+        if (i % 676 == 675) std::cout << std::endl;
+      } std::cout << std::endl;
+    }*/
+
+    if (strcmp(GetTFLiteOpName(registration), "TfLiteGpuDelegateV2") == 0) {
+      clock_t end = clock();
+      std::cout << "TIME : " << (float)(end - start)/CLOCKS_PER_SEC << std::endl;
     }
 //std::cout << "gpu test : "
 //  <<  *(float*)node.delegate->data_ << std::endl;
