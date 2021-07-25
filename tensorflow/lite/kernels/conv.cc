@@ -1025,14 +1025,14 @@ TfLiteStatus EvalImpl(TfLiteContext* context, TfLiteNode* node) {
           ? &context->tensors[node->temporaries->data[data->hwcn_weights_index]]
           : nullptr;
 
-  std::cout << "TEST : " << !data->have_weights_been_transposed << std::endl; 
+  //std::cout << "TEST : " << !data->have_weights_been_transposed << std::endl; 
 
   if (data->need_hwcn_weights && !data->have_weights_been_transposed) {
     TransposeFloatTensor(filter, hwcn_weights);
     data->have_weights_been_transposed = true;
   }
 
-  std::cout << std::endl << "####################" << std::endl;
+  /*std::cout << std::endl << "####################" << std::endl;
   std::cout << "input_shape : " << GetTensorShape(input).DimensionsCount() << std::endl;
   std::cout << "filter_shape : " << GetTensorShape(filter).DimensionsCount() << std::endl;
   std::cout << "bias_shape : " << GetTensorShape(bias).DimensionsCount() << std::endl;
@@ -1065,7 +1065,7 @@ TfLiteStatus EvalImpl(TfLiteContext* context, TfLiteNode* node) {
     std::cout << GetTensorShape(im2col).Dims(i) << " ";
   } std::cout << std::endl;
 
-  std::cout << "####################" << std::endl << std::endl;
+  std::cout << "####################" << std::endl << std::endl;*/
 
   TFLITE_DCHECK_EQ(input_type, input->type);
   switch (input_type) {  // Already know in/outtypes are same.

@@ -90,20 +90,30 @@ class Convolution : public NodeShader {
     bool non_empty_padding =
         attr.padding.appended.h != 0 || attr.padding.appended.w != 0 ||
         attr.padding.prepended.h != 0 || attr.padding.prepended.w != 0;
-/*
-    std::vector<float> temp = ConvertToPHWO4I4(attr.weights);
-    for (const auto& test : temp) {
+
+    std::vector<float> temp(288);
+    /*std::vector<float> tem = ConvertToPHWO4I4(attr.weights);
+    for (const auto& test : tem) {
       if (test != 0)
         std::cout << std::endl;
       std::cout << test << " ";
-    }std::cout << std::endl;
+    }std::cout << std::endl;*/
+    temp[0] = -0.974346;
+    temp[16] = -0.541998;
+    temp[32] = 0.0540409;
+    temp[48] = -0.91065;
+    temp[64] = 0.192518;
+    temp[80] = 0.737998;
+    temp[96] = -0.632737;
+    temp[112] = -0.0875763;
+    temp[128] = 0.507512;/*
     temp.resize(temp.size()/8);
     for (int i = 0; i < 0; ++i) {
       temp.push_back(0);
     }*/
     std::vector<std::pair<std::string, Object>> objects = {
         {"weights", MakeReadonlyObject(Get3DSizeForPHWO4I4(attr.weights.shape),
-                                       ConvertToPHWO4I4(attr.weights))}};
+                                       /*temp*/ConvertToPHWO4I4(attr.weights))}};
 
     std::string source;
     if (offsets_count_too_large) {
@@ -140,7 +150,13 @@ class Convolution : public NodeShader {
     }
     if (!attr.bias.data.empty()) {
       source += "value_0 += $bias[gid.z]$;\n";
-      objects.push_back({"bias", MakeReadonlyObject(attr.bias.data)});
+      std::vector<float> t(4);
+      t[0] = -0.01502;
+      t[1] = -0.12395;
+      t[2] = -0.03458;
+      t[3] = -0.00165;
+      /*std::cout << "BIAS : " << attr.bias.data.size() << std::endl;*/
+      objects.push_back({"bias", MakeReadonlyObject(/*t*/attr.bias.data)});
     }
 
     //std::cout << "GCODE : " << weights.o << " " << ctx.input_shapes[0][3] <<  std::endl;

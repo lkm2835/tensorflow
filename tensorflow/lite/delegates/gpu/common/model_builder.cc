@@ -517,8 +517,8 @@ class Conv2DOperationParser : public TFLiteOperationParser {
     RETURN_IF_ERROR(MaybeFuseActivation(tf_options->activation, graph, node));
     if (node->operation.type == "convolution_2d") {
       //auto& attrb = absl::any_cast<Convolution2DAttributes&>(node->operation.attributes);
-      //attr.weights.shape.o /= 2;
-      //attr.bias.shape.v /= 2;
+      //attr.weights.shape.o -= 3;
+      //attr.bias.shape.v -= 3;
     }
     node->operation.attributes = std::move(attr);
     std::cout << "Node ID : " << node->id << std::endl;
@@ -2879,7 +2879,7 @@ TfLiteIntArray* GetOpsToReplace(TfLiteContext* context, bool allow_quant_ops,
 	/*std::cout << " TEST ";
     std::cout << node->outputs->data[0] << std::endl;*/
 	//if(tflite::EnumNamesBuiltinOperator()[registration->builtin_code] == "DEPTHWISE_CONV_2D"){
-	if(node->outputs->data[0]== 9 && node->outputs->data[0]== 10 && node->outputs->data[0]== 11){
+	if(node->outputs->data[0]== 10 || node->outputs->data[0]== 12){
 		//std::cout << "TSETASETASETAES" << std::endl;
 		const auto test_status = a();
 		if (!test_status.ok()) {

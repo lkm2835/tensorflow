@@ -202,11 +202,14 @@ absl::Status Runtime::AddProgram(const GlShader& shader,
                                  const std::vector<Variable>& parameters,
                                  const std::vector<Object>& objects,
                                  const uint3& num_workgroups) {
+  SFLAG();
   GlProgram program;
   RETURN_IF_ERROR(GlProgram::CreateWithShader(shader, &program));
 
   for (auto& parameter : parameters) {
     RETURN_IF_ERROR(program.SetParameter(parameter));
+    //std::cout << "AddProgram : " << parameter.name << std::endl;
+    //std::cout << *(absl::get_if<int>(&parameter.value)) << std::endl;
   }
 
   programs_.emplace_back(

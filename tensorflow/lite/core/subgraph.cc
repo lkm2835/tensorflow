@@ -723,7 +723,7 @@ TfLiteStatus Subgraph::AllocateTensors() {
   for (int execution_plan_index = 0;
        execution_plan_index < execution_plan_.size(); execution_plan_index++) {
     int node_index = execution_plan_[execution_plan_index];
-    TfLiteNode& node = nodes_and_registration_[node_index].first; KMNODE();
+    TfLiteNode& node = nodes_and_registration_[node_index].first;
     const TfLiteRegistration& registration =
         nodes_and_registration_[node_index].second;
 
@@ -750,6 +750,7 @@ TfLiteStatus Subgraph::AllocateTensors() {
 
   }
 
+  KMCONTEXT();
   //int* test = (int*)context_.tensors[4].data.data;
   //test[1] /= 2;
   // std::cout << test[1];
@@ -1101,13 +1102,12 @@ TfLiteStatus Subgraph::Invoke() {
   // called.
  
   //std::cout << "execution_plan_.size(): "<< execution_plan_.size() << std::endl; 
-  KMCONTEXT();
 
 #ifdef DEBUGFF
   for (int execution_plan_index = 0;
        execution_plan_index < execution_plan_cpu.size(); execution_plan_index++) {
     int node_index = execution_plan_cpu[execution_plan_index];
-    TfLiteNode& node = nodes_and_registration_cpu[node_index].first; KMNODE();
+    TfLiteNode& node = nodes_and_registration_cpu[node_index].first;
     const TfLiteRegistration& registration =
         nodes_and_registration_cpu[node_index].second;
 
@@ -1228,7 +1228,7 @@ TfLiteStatus Subgraph::Invoke() {
                                     execution_plan_index);
     }
     int node_index = execution_plan_[execution_plan_index];
-    TfLiteNode& node = nodes_and_registration_[node_index].first; KMNODE();
+    TfLiteNode& node = nodes_and_registration_[node_index].first; 
     const TfLiteRegistration& registration =
         nodes_and_registration_[node_index].second;
 
@@ -1312,9 +1312,24 @@ TfLiteStatus Subgraph::Invoke() {
     }*/
 
     //std::cout << "TEST :::: : " << context_.tensors[tensor_index].params.scale << std::endl;
+
+    const char* myop = "TfLiteGpuDelegateV2%%";
+    if (strcmp(GetTFLiteOpName(registration), myop) == 0) {
+      std::cout << "filter" << std::endl;
+      int tensor_index = node.inputs->data[3];
+      int parameter = context_.tensors[tensor_index].bytes / 4;
+      int num = 1;
+      for (int i = 0; i <= parameter; ++i) {
+        if (i % 9 == 0) std::cout << num++ << std::endl;
+        //if (num < 31) continue;
+        std::cout << "\e[92m" << *((float*)context_.tensors[tensor_index].data.data+i) << "\e[97m" <<  " ";
+        if (i % 3 == 2) std::cout << std::endl;
+        if (i % 9 == 8) std::cout << std::endl;
+      } std::cout << std::endl;
+    }
     std::cout << std::fixed;
     std::cout.precision(5);
-    if (strcmp(GetTFLiteOpName(registration), "CONV_2D") == 0) {
+    if (strcmp(GetTFLiteOpName(registration), myop) == 0) {
       int tensor_index = node.inputs->data[0];
       int parameter = context_.tensors[tensor_index].bytes / 4;
       int num = 1;
@@ -1339,20 +1354,9 @@ TfLiteStatus Subgraph::Invoke() {
       //*((int*)context_.tensors[8].dims+4) -= 1;
     }
     
-    if (strcmp(GetTFLiteOpName(registration), "CONV_2D") == 0) {
+    
+    if (strcmp(GetTFLiteOpName(registration), myop) == 0) {
       int tensor_index = node.inputs->data[1];
-      int parameter = context_.tensors[tensor_index].bytes / 4;
-      int num = 1;
-      for (int i = 0; i <= parameter; ++i) {
-        if (i % 9 == 0) std::cout << num++ << std::endl;
-        //if (num < 31) continue;
-        std::cout << "\e[92m" << *((float*)context_.tensors[tensor_index].data.data+i) << "\e[97m" <<  " ";
-        if (i % 3 == 2) std::cout << std::endl;
-        if (i % 9 == 8) std::cout << std::endl;
-      } std::cout << std::endl;
-    }
-    if (strcmp(GetTFLiteOpName(registration), "CONV_2D") == 0) {
-      int tensor_index = node.inputs->data[2];
       int parameter = context_.tensors[tensor_index].bytes / 4;
       int num = 1;
       for (int i = 0; i <= parameter; ++i) {
@@ -1367,7 +1371,7 @@ TfLiteStatus Subgraph::Invoke() {
 	    return ReportOpError(&context_, node, registration, node_index,
                            "failed to invoke");
     }
-    if (strcmp(GetTFLiteOpName(registration), "CONV_2D") == 0) {
+    if (strcmp(GetTFLiteOpName(registration), myop) == 0) {
       int tensor_index = node.outputs->data[0];
       int parameter = context_.tensors[tensor_index].bytes / 4;
       int num = 1;
@@ -1385,14 +1389,21 @@ TfLiteStatus Subgraph::Invoke() {
         }
         std::cout << std::endl;
       }*/
-      int d = 1;
+      int d = 8;
       std::vector<std::vector<float>> out;
       for (int i = 0; i < d; ++i) {
         std::vector<float> temp(26*26);
         out.push_back(temp);
       }
-      for (int i = 0; i <= parameter /4 * d; ++i) {
+      for (int i = 0; i <= parameter /8 * d; ++i) {
         float data = *((float*)context_.tensors[tensor_index].data.data+i);
+        
+        num += 1;
+          if (data == 0)
+            std::cout << data << " ";
+          else
+            std::cout << "\e[92m" << data << "\e[97m" <<  " ";
+          if (num % 26 == 0) std::cout << std::endl;
         out[i%d][i/d] = data;
       }
       
@@ -1898,51 +1909,6 @@ TfLiteStatus Subgraph::EnsureMemoryAllocations() {
 
 TfLiteStatus Subgraph::ModifyGraphWithDelegate(TfLiteDelegate* delegate) {
   SFLAG();
-  //std::cout << "tensorflow/lite/core/subgraph.cc/Subgraph::ModifyGraphWithDelegate()\n";
-  //*((int*)context_.tensors[7].dims+1) /= 2;
-  //*((int*)context_.tensors[3].dims+1) /= 2;
-  //*((int*)context_.tensors[8].dims+4) /= 2; 
-  //*((int*)context_.tensors[9].dims+2) = 26*26*16; 
-  std::cout << *(*(int**)(&context_.tensors[4].data)+1) << " " ;
-  //*(*(int**)(&context_.tensors[4].data)+1) /= 2;
-  std::cout << *(*(int**)(&context_.tensors[4].data)+1) << " " << std::endl;
-  //std::cout << *((int*)context_.tensors[4].data.i32+1) << std::endl;
-
-  std::cout << *((int*)context_.tensors[0].dims+0) << " ";
-  std::cout << *((int*)context_.tensors[0].dims+1) << " ";
-  std::cout << *((int*)context_.tensors[0].dims+2) << " ";
-  std::cout << *((int*)context_.tensors[0].dims+3) << " "; 
-  std::cout << *((int*)context_.tensors[0].dims+4) << " " << std::endl;
-  std::cout << *((int*)context_.tensors[3].dims+0) << " ";
-  std::cout << *((int*)context_.tensors[3].dims+1) << " ";
-  std::cout << *((int*)context_.tensors[3].dims+2) << " ";
-  std::cout << *((int*)context_.tensors[3].dims+3) << " "; 
-  std::cout << *((int*)context_.tensors[3].dims+4) << " " << std::endl;
-  std::cout << *((int*)context_.tensors[7].dims+0) << " ";
-  std::cout << *((int*)context_.tensors[7].dims+1) << " ";
-  std::cout << *((int*)context_.tensors[7].dims+2) << " ";
-  std::cout << *((int*)context_.tensors[7].dims+3) << " "; 
-  std::cout << *((int*)context_.tensors[7].dims+4) << " " << std::endl;
-  std::cout << *((int*)context_.tensors[8].dims+0) << " ";
-  std::cout << *((int*)context_.tensors[8].dims+1) << " ";
-  std::cout << *((int*)context_.tensors[8].dims+2) << " ";
-  std::cout << *((int*)context_.tensors[8].dims+3) << " "; 
-  std::cout << *((int*)context_.tensors[8].dims+4) << " " << std::endl;
-    std::cout << *((int*)context_.tensors[4].dims+0) << " ";
-  std::cout << *((int*)context_.tensors[4].dims+1) << " ";
-  std::cout << *((int*)context_.tensors[4].dims+2) << " ";
-  std::cout << *((int*)context_.tensors[4].dims+3) << " "; 
-  std::cout << *((int*)context_.tensors[4].dims+4) << " " << std::endl;
-      std::cout << *((int*)context_.tensors[4].data.data+0) << " ";
-  std::cout << *((int*)context_.tensors[4].data.data+1) << " ";
-  std::cout << *((int*)context_.tensors[4].data.data+2) << " ";
-  std::cout << *((int*)context_.tensors[4].data.data+3) << " "; 
-  std::cout << *((int*)context_.tensors[4].data.data+4) << " " << std::endl;
-  std::cout << *((int*)context_.tensors[9].dims+0) << " ";
-  std::cout << *((int*)context_.tensors[9].dims+1) << " ";
-  std::cout << *((int*)context_.tensors[9].dims+2) << " ";
-  std::cout << *((int*)context_.tensors[9].dims+3) << " "; 
-  std::cout << *((int*)context_.tensors[9].dims+4) << " " << std::endl;
   TFLITE_SCOPED_TAGGED_DEFAULT_PROFILE(profiler_.get(),
                                        "ModifyGraphWithDelegate");
 
@@ -1954,8 +1920,7 @@ TfLiteStatus Subgraph::ModifyGraphWithDelegate(TfLiteDelegate* delegate) {
         "ModifyGraphWithDelegate is disallowed when graph is immutable.");
 	return kTfLiteApplicationError;
   }
-//*((int*)context_.tensors[8].dims+4) *= 2; 
-  //*((int*)context_.tensors[9].dims+2) = 26*26*32; 
+
   if (!(delegate->flags & kTfLiteDelegateFlagsAllowDynamicTensors)) {
     int last_execution_plan_index_prepared;
     TF_LITE_ENSURE_OK(
@@ -1996,38 +1961,6 @@ TfLiteStatus Subgraph::ModifyGraphWithDelegate(TfLiteDelegate* delegate) {
     return kTfLiteOk;
   };
 
-
-    //*((int*)context_.tensors[7].dims+1) /= 2;
-    //*((int*)context_.tensors[3].dims+1) /= 2;
-
-    //*((int*)context_.tensors[8].dims+4) /= 2;
-    //*((int*)context_.tensors[9].dims+1) /= 2;
-
-    //    *((int*)context_.tensors[7].dims+1) -= 2;
-    //*((int*)context_.tensors[3].dims+1) -= 2;
-//*((int*)context_.tensors[8].dims+4) /= 2; 
-
-  std::cout << *((int*)context_.tensors[0].dims+0) << " ";
-  std::cout << *((int*)context_.tensors[0].dims+1) << " ";
-  std::cout << *((int*)context_.tensors[0].dims+2) << " ";
-  std::cout << *((int*)context_.tensors[0].dims+3) << " "; 
-  std::cout << *((int*)context_.tensors[0].dims+4) << " " << std::endl;
-  std::cout << *((int*)context_.tensors[3].dims+0) << " ";
-  std::cout << *((int*)context_.tensors[3].dims+1) << " ";
-  std::cout << *((int*)context_.tensors[3].dims+2) << " ";
-  std::cout << *((int*)context_.tensors[3].dims+3) << " "; 
-  std::cout << *((int*)context_.tensors[3].dims+4) << " " << std::endl;
-  std::cout << *((int*)context_.tensors[7].dims+0) << " ";
-  std::cout << *((int*)context_.tensors[7].dims+1) << " ";
-  std::cout << *((int*)context_.tensors[7].dims+2) << " ";
-  std::cout << *((int*)context_.tensors[7].dims+3) << " "; 
-  std::cout << *((int*)context_.tensors[7].dims+4) << " " << std::endl;
-    std::cout << *((int*)context_.tensors[8].dims+0) << " ";
-  std::cout << *((int*)context_.tensors[8].dims+1) << " ";
-  std::cout << *((int*)context_.tensors[8].dims+2) << " ";
-  std::cout << *((int*)context_.tensors[8].dims+3) << " "; 
-  std::cout << *((int*)context_.tensors[8].dims+4) << " " << std::endl;
-
   TfLiteStatus status = delegate->Prepare(&context_, delegate);
 
   // Remove additional context info.
@@ -2049,33 +1982,7 @@ TfLiteStatus Subgraph::ModifyGraphWithDelegate(TfLiteDelegate* delegate) {
         reset_delegation_if_not_ok(EnsureMemoryAllocations()));
   }
   delegates_applied_.push_back(delegate);
-  //if (strcmp(GetTFLiteOpName(registration), "TfLiteGpuDelegateV2") == 0 ) {
-    //*((int*)context_.tensors[7].dims+1) /= 2;
-    //*((int*)context_.tensors[3].dims+1) /= 2;
-    //*((int*)context_.tensors[8].dims+4) /= 2; 
-    //*((int*)context_.tensors[9].dims+2) /= 2; 
-  //}
-  std::cout << *((int*)context_.tensors[0].dims+0) << " ";
-  std::cout << *((int*)context_.tensors[0].dims+1) << " ";
-  std::cout << *((int*)context_.tensors[0].dims+2) << " ";
-  std::cout << *((int*)context_.tensors[0].dims+3) << " "; 
-  std::cout << *((int*)context_.tensors[0].dims+4) << " " << std::endl;
-  std::cout << *((int*)context_.tensors[3].dims+0) << " ";
-  std::cout << *((int*)context_.tensors[3].dims+1) << " ";
-  std::cout << *((int*)context_.tensors[3].dims+2) << " ";
-  std::cout << *((int*)context_.tensors[3].dims+3) << " "; 
-  std::cout << *((int*)context_.tensors[3].dims+4) << " " << std::endl;
-  std::cout << *((int*)context_.tensors[7].dims+0) << " ";
-  std::cout << *((int*)context_.tensors[7].dims+1) << " ";
-  std::cout << *((int*)context_.tensors[7].dims+2) << " ";
-  std::cout << *((int*)context_.tensors[7].dims+3) << " "; 
-  std::cout << *((int*)context_.tensors[7].dims+4) << " " << std::endl;
-    std::cout << *((int*)context_.tensors[8].dims+0) << " ";
-  std::cout << *((int*)context_.tensors[8].dims+1) << " ";
-  std::cout << *((int*)context_.tensors[8].dims+2) << " ";
-  std::cout << *((int*)context_.tensors[8].dims+3) << " "; 
-  std::cout << *((int*)context_.tensors[8].dims+4) << " " << std::endl;
-
+  KMCONTEXT();
   return status;
 }
 
