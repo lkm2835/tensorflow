@@ -56,28 +56,30 @@ void KmContext::channelPartitioning(std::vector<int>& execution_plan, std::vecto
 		}
 
 		if (strcmp(GetOpName(registration), "CONV_2D") == 0) {
-			for (int i = 1; i < node.inputs->size; ++i) {
-				int tensor_index = node.inputs->data[i];
+			for (int n = 1; n < node.inputs->size; ++n) {
+				int tensor_index = node.inputs->data[n];
 				TfLiteTensor& tensor = context_->tensors[tensor_index];
-				void* data = tensor.data.data;
+				void** data = &tensor.data.data;
 				size_t bytes = tensor.bytes;
 				int* dims = (int*)tensor.dims;
-				if (i == 1) {
+				if (n == 1) {
 					int o = *(dims + 1);
 					int w = *(dims + 2);
 					int h = *(dims + 3);
 					int i = *(dims + 4);
-					data += w * h * i * ((int)bytes / (o * w * h * i)); 
+					int next_filter = w * h * i * ((int)bytes / (o * w * h * i));
+					*data += (int)(next_filter * o * (1 - ratios[execution_plan_index])); 
 				}
-				if (i == 2) {
+				if (n == 2) {
 					int o = *(dims + 1);
-					data += (int)bytes / o;
+					int next_bias = (int)bytes / o;
+					*data += (int)(next_bias * o * (1 - ratios[execution_plan_index]));
 				}
 
 				*(dims + 1) *= ratios[execution_plan_index]; 
 			}
-			for (int i = 0; i < node.outputs->size; ++i) {
-				int tensor_index = node.outputs->data[i];
+			for (int n = 0; n < node.outputs->size; ++n) {
+				int tensor_index = node.outputs->data[n];
 				TfLiteTensor& tensor = context_->tensors[tensor_index];
 				int* dims = (int*)tensor.dims;
 				*(dims + 4) *= ratios[execution_plan_index];

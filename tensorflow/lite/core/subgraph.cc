@@ -1313,10 +1313,10 @@ TfLiteStatus Subgraph::Invoke() {
 
     //std::cout << "TEST :::: : " << context_.tensors[tensor_index].params.scale << std::endl;
 
-    const char* myop = "TfLiteGpuDelegateV2%%";
+    const char* myop = "CONV_2D";
     if (strcmp(GetTFLiteOpName(registration), myop) == 0) {
       std::cout << "filter" << std::endl;
-      int tensor_index = node.inputs->data[3];
+      int tensor_index = node.inputs->data[1];
       int parameter = context_.tensors[tensor_index].bytes / 4;
       int num = 1;
       for (int i = 0; i <= parameter; ++i) {
@@ -1328,7 +1328,7 @@ TfLiteStatus Subgraph::Invoke() {
       } std::cout << std::endl;
     }
     std::cout << std::fixed;
-    std::cout.precision(5);
+    std::cout.precision(4);
     if (strcmp(GetTFLiteOpName(registration), myop) == 0) {
       int tensor_index = node.inputs->data[0];
       int parameter = context_.tensors[tensor_index].bytes / 4;
@@ -1389,13 +1389,13 @@ TfLiteStatus Subgraph::Invoke() {
         }
         std::cout << std::endl;
       }*/
-      int d = 8;
+      int d = 1;
       std::vector<std::vector<float>> out;
       for (int i = 0; i < d; ++i) {
         std::vector<float> temp(26*26);
         out.push_back(temp);
       }
-      for (int i = 0; i <= parameter /8 * d; ++i) {
+      for (int i = 0; i <= parameter /4 * d; ++i) {
         float data = *((float*)context_.tensors[tensor_index].data.data+i);
         
         num += 1;

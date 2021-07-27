@@ -16,7 +16,6 @@ class KmContext {
     std::vector<int>* execution_plan_;
     std::vector<std::pair<TfLiteNode, TfLiteRegistration>>* nodes_and_registration_;
 
-  private:
     void setContext(TfLiteContext* context, std::vector<int>* execution_plan, 
                     std::vector<std::pair<TfLiteNode, TfLiteRegistration>>* nodes_and_registration);
 };
