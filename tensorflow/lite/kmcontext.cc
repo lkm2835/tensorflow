@@ -9,18 +9,18 @@ using namespace std;
 KmContext kmcontext;
 
 void KmContext::channelPartitioning(vector<pair<int, float>>& layer) {
-	vector<int> execution_plan;
+	vector<int> partitioning_plan;
 	vector<float> ratios;
 	for (const auto& l : layer) {
-		execution_plan.push_back(l.first);
+		partitioning_plan.push_back(l.first);
 		ratios.push_back(l.second);
 	}
 
-	channelPartitioning(execution_plan, ratios);
+	channelPartitioning(partitioning_plan, ratios);
 }
 
 void KmContext::channelPartitioning(string op_name, float ratio) {
-	vector<int> execution_plan;
+	vector<int> partitioning_plan;
 	vector<float> ratios;
 	for (int execution_plan_index = 0;
 			execution_plan_index < execution_plan_->size(); execution_plan_index++) {
@@ -30,18 +30,21 @@ void KmContext::channelPartitioning(string op_name, float ratio) {
 		const TfLiteRegistration& registration = (*nodes_and_registration_)[node_index].second;
 		
 		if (strcmp(GetOpName(registration), op_name.c_str()) == 0) {
-			execution_plan.push_back(execution_plan_index);
+			partitioning_plan.push_back(execution_plan_index);
 			ratios.push_back(ratio);
 		}
 	}
 	
-	channelPartitioning(execution_plan, ratios);
+	channelPartitioning(partitioning_plan, ratios);
 }
 
-void KmContext::channelPartitioning(std::vector<int>& execution_plan, std::vector<float>& ratios) {
-	for (int execution_plan_index = 0;
-		 	execution_plan_index < execution_plan.size(); execution_plan_index++) {
-		int node_index = execution_plan[execution_plan_index];
+void KmContext::channelPartitioning(std::vector<int>& partitioning_plan, std::vector<float>& ratios) {
+	partitioning_plan_ = &partitioning_plan;
+	ratios_ = &ratios;
+
+	for (int partitioning_plan_index = 0;
+		 	partitioning_plan_index < partitioning_plan.size(); partitioning_plan_index++) {
+		int node_index = partitioning_plan[partitioning_plan_index];
 		if (!(node_index < nodes_and_registration_->size())) {
 			cerr << "[" << node_index << "] layer is not exist." << endl;
 			continue;
@@ -68,21 +71,21 @@ void KmContext::channelPartitioning(std::vector<int>& execution_plan, std::vecto
 					int h = *(dims + 3);
 					int i = *(dims + 4);
 					int next_filter = w * h * i * ((int)bytes / (o * w * h * i));
-					*data += (int)(next_filter * o * (1 - ratios[execution_plan_index])); 
+					*data += (int)(next_filter * o * (1 - ratios[partitioning_plan_index])); 
 				}
 				if (n == 2) {
 					int o = *(dims + 1);
 					int next_bias = (int)bytes / o;
-					*data += (int)(next_bias * o * (1 - ratios[execution_plan_index]));
+					*data += (int)(next_bias * o * (1 - ratios[partitioning_plan_index]));
 				}
 
-				*(dims + 1) *= ratios[execution_plan_index]; 
+				*(dims + 1) *= ratios[partitioning_plan_index]; 
 			}
 			for (int n = 0; n < node.outputs->size; ++n) {
 				int tensor_index = node.outputs->data[n];
 				TfLiteTensor& tensor = context_->tensors[tensor_index];
 				int* dims = (int*)tensor.dims;
-				*(dims + 4) *= ratios[execution_plan_index];
+				*(dims + 4) *= ratios[partitioning_plan_index];
 			}
 		}
 		else {
@@ -91,6 +94,65 @@ void KmContext::channelPartitioning(std::vector<int>& execution_plan, std::vecto
 		}
 		
 	}
+}
+
+void KmContext::printOutputTensors() {
+//error
+/*	for (int partitioning_plan_index = 0;
+			partitioning_plan_index < partitioning_plan_->size(); partitioning_plan_index++) {
+		int node_index = (*partitioning_plan_)[partitioning_plan_index];
+		TfLiteNode& node = (*nodes_and_registration_)[node_index].first;
+		const TfLiteRegistration& registration = (*nodes_and_registration_)[node_index].second;
+
+		if (strcmp(GetOpName(registration), "CONV_2D") == 0) {
+			int tensor_index = node.outputs->data[0];
+			TfLiteTensor& tensor = context_->tensors[tensor_index];
+			int* dims = (int*)tensor.dims;
+			int o = *(dims + 4);
+			int original_dims = o / (*ratios_)[partitioning_plan_index];
+			int partitioning_dims = original_dims * (1 - (*ratios_)[partitioning_plan_index]);
+			int parameter = tensor.bytes / 4;
+			
+			vector<vector<float>> out;
+
+			int w = *(dims + 2);
+			int h = *(dims + 3);
+		//	cout << "TEST\n";
+			for (int i = 0; i < partitioning_dims; ++i) {
+				vector<float> o(*(dims + 2) * *(dims + 3));
+				out.push_back(o);
+			}
+		
+			for (int i = 0; i < parameter; ++i) {
+				float data = *(float*)(tensor.data.data+i);
+				if (data == 0)
+					cout << data << " ";
+				else
+					cout << "\e[92m" << data << "\e[97m" << " ";
+				if (i % w == w - 1) cout << endl;
+				if (i % (w * h) == w * h - 1) cout << endl;
+			} cout << endl;
+
+			for (int i = 0; i < parameter; original_dims) {
+				float data = *((float*)tensor.data.data+i);
+				out[i % partitioning_dims][i / partitioning_dims] = data;
+			}
+
+			for (int i = 0; i < o; ++i) {
+				cout << i + 1 << endl;
+				int num = 0;
+				for (const auto& data : out[i]) {
+					if (data == 0)
+						cout << data << " ";
+					else
+						cout << "\e[92m" << data << "\e[97m" << " ";
+					if (num % w == w - 1) cout << endl;
+					if (num % (w * h) == w * h - 1) cout << endl;
+					num += 1;
+				}
+			} cout << endl;
+		}
+	}*/
 }
 
 void KmContext::printNodeIndex() {
