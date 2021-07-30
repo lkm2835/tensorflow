@@ -40,7 +40,7 @@ void KmContext::channelPartitioning(string op_name, float ratio) {
 
 void KmContext::channelPartitioning(std::vector<int>& partitioning_plan, std::vector<float>& ratios) {
 	partitioning_plan_.assign(partitioning_plan.begin(), partitioning_plan.end());
-	ratios_ = &ratios;
+	ratios_.assign(ratios.begin(), ratios.end());
 
 	for (int partitioning_plan_index = 0;
 		 	partitioning_plan_index < partitioning_plan_.size(); partitioning_plan_index++) {
@@ -71,21 +71,21 @@ void KmContext::channelPartitioning(std::vector<int>& partitioning_plan, std::ve
 					int h = *(dims + 3);
 					int i = *(dims + 4);
 					int next_filter = w * h * i * ((int)bytes / (o * w * h * i));
-					*data += (int)(next_filter * o * (1 - ratios[partitioning_plan_index])); 
+					*data += (int)(next_filter * o * (1 - ratios_[partitioning_plan_index])); 
 				}
 				if (n == 2) {
 					int o = *(dims + 1);
 					int next_bias = (int)bytes / o;
-					*data += (int)(next_bias * o * (1 - ratios[partitioning_plan_index]));
+					*data += (int)(next_bias * o * (1 - ratios_[partitioning_plan_index]));
 				}
 
-				*(dims + 1) *= ratios[partitioning_plan_index]; 
+				*(dims + 1) *= ratios_[partitioning_plan_index]; 
 			}
 			for (int n = 0; n < node.outputs->size; ++n) {
 				int tensor_index = node.outputs->data[n];
 				TfLiteTensor& tensor = context_->tensors[tensor_index];
 				int* dims = (int*)tensor.dims;
-				*(dims + 4) *= ratios[partitioning_plan_index];
+				*(dims + 4) *= ratios_[partitioning_plan_index];
 			}
 		}
 		else {
@@ -105,18 +105,16 @@ void KmContext::printOutputTensors() {
 		int node_index = partitioning_plan_[partitioning_plan_index];
 		TfLiteNode& node = (*nodes_and_registration_)[node_index].first;
 		const TfLiteRegistration& registration = (*nodes_and_registration_)[node_index].second;
-		
 		if (strcmp(GetOpName(registration), "CONV_2D") == 0) {
 			int tensor_index = node.outputs->data[0];
 			TfLiteTensor& tensor = context_->tensors[tensor_index];
 			int* dims = (int*)tensor.dims;
 			int o = *(dims + 4);
-			int original_dims = o / (*ratios_)[partitioning_plan_index];
-			int partitioning_dims = original_dims * (1 - (*ratios_)[partitioning_plan_index]);
+			int original_dims = o / ratios_[partitioning_plan_index];
+			int partitioning_dims = original_dims * ratios_[partitioning_plan_index];
 			int parameter = tensor.bytes / 4;
 			
 			vector<vector<float>> out;
-			cout << "TEST\n\n\n" << tensor.data.data << endl;
 			int w = *(dims + 2);
 			int h = *(dims + 3);
 			
@@ -125,22 +123,24 @@ void KmContext::printOutputTensors() {
 				out.push_back(o);
 			}
 		
-			for (int i = 0; i < parameter; ++i) {
-				float data = *(float*)(tensor.data.data+i);
+			//////////////////
+			//print raw data//
+			//////////////////
+	
+			/*for (int i = 0; i < parameter; ++i) {
+				float data = *((float*)tensor.data.data+i);
 				if (data == 0)
 					cout << data << " ";
 				else
 					cout << "\e[92m" << data << "\e[97m" << " ";
 				if (i % w == w - 1) cout << endl;
 				if (i % (w * h) == w * h - 1) cout << endl;
-			} cout << endl;
+			} cout << endl;*/
 
-			cout << endl;cout << endl;cout << endl;cout << endl;
-
-			for (int i = 0; i < parameter; original_dims) {
+			for (int i = 0; i < parameter * ratios_[partitioning_plan_index]; ++i) {
 				float data = *((float*)tensor.data.data+i);
 				out[i % partitioning_dims][i / partitioning_dims] = data;
-			}
+			}	
 
 			for (int i = 0; i < o; ++i) {
 				cout << i + 1 << endl;

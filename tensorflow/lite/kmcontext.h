@@ -18,7 +18,7 @@ class KmContext {
     std::vector<std::pair<TfLiteNode, TfLiteRegistration>>* nodes_and_registration_;
 
 	std::vector<int> partitioning_plan_;
-	std::vector<float>* ratios_;
+	std::vector<float> ratios_;
 
     void setContext(TfLiteContext* context, std::vector<int>* execution_plan, 
                     std::vector<std::pair<TfLiteNode, TfLiteRegistration>>* nodes_and_registration);

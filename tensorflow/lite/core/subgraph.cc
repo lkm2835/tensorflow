@@ -1313,7 +1313,7 @@ TfLiteStatus Subgraph::Invoke() {
 
     //std::cout << "TEST :::: : " << context_.tensors[tensor_index].params.scale << std::endl;
 
-    const char* myop = "CONV_2DTT";
+    const char* myop = "CONV_2D";
     if (strcmp(GetTFLiteOpName(registration), myop) == 0) {
       std::cout << "filter" << std::endl;
       int tensor_index = node.inputs->data[1];
@@ -1371,6 +1371,7 @@ TfLiteStatus Subgraph::Invoke() {
 	    return ReportOpError(&context_, node, registration, node_index,
                            "failed to invoke");
     }
+	std::cout << context_.tensors[8].data.data << std::endl;
     if (strcmp(GetTFLiteOpName(registration), myop) == 0) {
       int tensor_index = node.outputs->data[0];
       int parameter = context_.tensors[tensor_index].bytes / 4;
@@ -1451,13 +1452,13 @@ TfLiteStatus Subgraph::Invoke() {
       } std::cout << std::endl;
     }*/
 
-    {
+ /*   {
       int d = 4;
-      /*std::vector<std::vector<float>> out;
+      std::vector<std::vector<float>> out;
       for (int i = 0; i < d; ++i) {
         std::vector<float> temp(26*26);
         out.push_back(temp);
-      }*/
+      }
       int tensor_index = 8;
       int parameter = context_.tensors[tensor_index].bytes;
       std::cout << "TSET\n\n\n" << context_.tensors[tensor_index].data.data << std::endl;
@@ -1473,7 +1474,7 @@ TfLiteStatus Subgraph::Invoke() {
           if (num % 26 == 0) std::cout << std::endl;
         //out[i%d][i/d] = data;
       }
-      }
+      }*/
 
     if (strcmp(GetTFLiteOpName(registration), "TfLiteGpuDelegateV2") == 0) {
       clock_t end = clock();
