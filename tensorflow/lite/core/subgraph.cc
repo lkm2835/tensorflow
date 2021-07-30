@@ -1313,7 +1313,7 @@ TfLiteStatus Subgraph::Invoke() {
 
     //std::cout << "TEST :::: : " << context_.tensors[tensor_index].params.scale << std::endl;
 
-    const char* myop = "CONV_2D";
+    const char* myop = "CONV_2DTT";
     if (strcmp(GetTFLiteOpName(registration), myop) == 0) {
       std::cout << "filter" << std::endl;
       int tensor_index = node.inputs->data[1];
@@ -1375,7 +1375,8 @@ TfLiteStatus Subgraph::Invoke() {
       int tensor_index = node.outputs->data[0];
       int parameter = context_.tensors[tensor_index].bytes / 4;
       int num = 1;
-      /*for (int k = 0; k < 8; ++k){
+      std::cout << context_.tensors[tensor_index].data.data << std::endl;
+      for (int k = 0; k < 4; ++k){
         std::cout << k+1 << std::endl;
         for (int i = 0; i < 26; ++i) {
           for (int j = 0; j < 26; ++j) {
@@ -1388,13 +1389,14 @@ TfLiteStatus Subgraph::Invoke() {
           std::cout << std::endl;
         }
         std::cout << std::endl;
-      }*/
-      int d = 1;
+      }/*
+      int d = 4;
       std::vector<std::vector<float>> out;
       for (int i = 0; i < d; ++i) {
         std::vector<float> temp(26*26);
         out.push_back(temp);
       }
+      std::cout << "TSET\n\n\n" << context_.tensors[tensor_index].data.data << std::endl;
       for (int i = 0; i <= parameter /4 * d; ++i) {
         float data = *((float*)context_.tensors[tensor_index].data.data+i);
         
@@ -1405,7 +1407,7 @@ TfLiteStatus Subgraph::Invoke() {
             std::cout << "\e[92m" << data << "\e[97m" <<  " ";
           if (num % 26 == 0) std::cout << std::endl;
         out[i%d][i/d] = data;
-      }
+      }*//*
       
       for (int i = 0; i < d; ++i) {
         std::cout << i+1 << std::endl;
@@ -1420,7 +1422,7 @@ TfLiteStatus Subgraph::Invoke() {
         } 
         std::cout << std::endl;
       }std::cout << std::endl;
-      /*for (int i = 0; i <= parameter; ++i) {
+      for (int i = 0; i <= parameter; ++i) {
         if (i % 676 == 0) std::cout << num++ << std::endl;
         float data = *((float*)context_.tensors[tensor_index].data.data+i);
         if (data == 0)
@@ -1449,6 +1451,30 @@ TfLiteStatus Subgraph::Invoke() {
       } std::cout << std::endl;
     }*/
 
+    {
+      int d = 4;
+      /*std::vector<std::vector<float>> out;
+      for (int i = 0; i < d; ++i) {
+        std::vector<float> temp(26*26);
+        out.push_back(temp);
+      }*/
+      int tensor_index = 8;
+      int parameter = context_.tensors[tensor_index].bytes;
+      std::cout << "TSET\n\n\n" << context_.tensors[tensor_index].data.data << std::endl;
+      int num = 0;
+      for (int i = 0; i <= parameter /4; ++i) {
+        float data = *((float*)context_.tensors[tensor_index].data.data+i);
+        
+        num += 1;
+          if (data == 0)
+            std::cout << data << " ";
+          else
+            std::cout << "\e[92m" << data << "\e[97m" <<  " ";
+          if (num % 26 == 0) std::cout << std::endl;
+        //out[i%d][i/d] = data;
+      }
+      }
+
     if (strcmp(GetTFLiteOpName(registration), "TfLiteGpuDelegateV2") == 0) {
       clock_t end = clock();
       std::cout << "TIME : " << (float)(end - start)/CLOCKS_PER_SEC << std::endl;
@@ -1474,11 +1500,8 @@ TfLiteStatus Subgraph::Invoke() {
         }
       }
     }
-  }/*
-  for(int i = 0; i < 11; ++i) {
-     if (i >7 && i < 10) continue; 
- 	 std::cout << i <<" TEST : " << *(float*)context_.tensors[i].data.data  << std::endl;
-}*/
+  }
+  //kmcontext.printOutputTensors();
   return status;
 }
 

@@ -39,12 +39,12 @@ void KmContext::channelPartitioning(string op_name, float ratio) {
 }
 
 void KmContext::channelPartitioning(std::vector<int>& partitioning_plan, std::vector<float>& ratios) {
-	partitioning_plan_ = &partitioning_plan;
+	partitioning_plan_.assign(partitioning_plan.begin(), partitioning_plan.end());
 	ratios_ = &ratios;
 
 	for (int partitioning_plan_index = 0;
-		 	partitioning_plan_index < partitioning_plan.size(); partitioning_plan_index++) {
-		int node_index = partitioning_plan[partitioning_plan_index];
+		 	partitioning_plan_index < partitioning_plan_.size(); partitioning_plan_index++) {
+		int node_index = partitioning_plan_[partitioning_plan_index];
 		if (!(node_index < nodes_and_registration_->size())) {
 			cerr << "[" << node_index << "] layer is not exist." << endl;
 			continue;
@@ -98,12 +98,14 @@ void KmContext::channelPartitioning(std::vector<int>& partitioning_plan, std::ve
 
 void KmContext::printOutputTensors() {
 //error
-/*	for (int partitioning_plan_index = 0;
-			partitioning_plan_index < partitioning_plan_->size(); partitioning_plan_index++) {
-		int node_index = (*partitioning_plan_)[partitioning_plan_index];
+	cout << fixed;
+    cout.precision(4);
+	for (int partitioning_plan_index = 0;
+			partitioning_plan_index < partitioning_plan_.size(); partitioning_plan_index++) {
+		int node_index = partitioning_plan_[partitioning_plan_index];
 		TfLiteNode& node = (*nodes_and_registration_)[node_index].first;
 		const TfLiteRegistration& registration = (*nodes_and_registration_)[node_index].second;
-
+		
 		if (strcmp(GetOpName(registration), "CONV_2D") == 0) {
 			int tensor_index = node.outputs->data[0];
 			TfLiteTensor& tensor = context_->tensors[tensor_index];
@@ -114,10 +116,10 @@ void KmContext::printOutputTensors() {
 			int parameter = tensor.bytes / 4;
 			
 			vector<vector<float>> out;
-
+			cout << "TEST\n\n\n" << tensor.data.data << endl;
 			int w = *(dims + 2);
 			int h = *(dims + 3);
-		//	cout << "TEST\n";
+			
 			for (int i = 0; i < partitioning_dims; ++i) {
 				vector<float> o(*(dims + 2) * *(dims + 3));
 				out.push_back(o);
@@ -132,6 +134,8 @@ void KmContext::printOutputTensors() {
 				if (i % w == w - 1) cout << endl;
 				if (i % (w * h) == w * h - 1) cout << endl;
 			} cout << endl;
+
+			cout << endl;cout << endl;cout << endl;cout << endl;
 
 			for (int i = 0; i < parameter; original_dims) {
 				float data = *((float*)tensor.data.data+i);
@@ -152,7 +156,8 @@ void KmContext::printOutputTensors() {
 				}
 			} cout << endl;
 		}
-	}*/
+	}
+	cout.setf(ios::fixed);
 }
 
 void KmContext::printNodeIndex() {
