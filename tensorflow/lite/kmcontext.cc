@@ -1,6 +1,6 @@
 #include <iostream>
 #include <cstring>
-#include <iomanip>
+#include <cmath>
 
 #include "tensorflow/lite/kmcontext.h"
 
@@ -46,6 +46,7 @@ void KmContext::channelPartitioning(std::vector<int>& partitioning_plan, std::ve
 	for (int partitioning_plan_index = 0;
 		 	partitioning_plan_index < partitioning_plan_.size(); partitioning_plan_index++) {
 		int node_index = partitioning_plan_[partitioning_plan_index];
+		cout << node_index << endl;
 		if (!(node_index < nodes_and_registration_->size())) {
 			cerr << "[" << node_index << "] layer is not exist." << endl;
 			continue;
@@ -72,12 +73,15 @@ void KmContext::channelPartitioning(std::vector<int>& partitioning_plan, std::ve
 					int h = *(dims + 3);
 					int i = *(dims + 4);
 					int next_filter = w * h * i * ((int)bytes / (o * w * h * i));
-					*data += (int)(next_filter * o * (1 - ratios_[partitioning_plan_index])); 
+					next_filter = (int)floor(next_filter * o * (1 - ratios_[partitioning_plan_index]) + 0.5);
+					*data += next_filter; 
 				}
 				if (n == 2) {
 					int o = *(dims + 1);
 					int next_bias = (int)bytes / o;
-					*data += (int)(next_bias * o * (1 - ratios_[partitioning_plan_index]));
+					next_bias = (int)floor(next_bias * o * (1 - ratios_[partitioning_plan_index]) + 0.5);
+					cout << "TEST : " << next_bias;
+					*data += next_bias;
 				}
 
 				*(dims + 1) *= ratios_[partitioning_plan_index]; 
@@ -86,7 +90,8 @@ void KmContext::channelPartitioning(std::vector<int>& partitioning_plan, std::ve
 				int tensor_index = node.outputs->data[n];
 				TfLiteTensor& tensor = context_->tensors[tensor_index];
 				int* dims = (int*)tensor.dims;
-				*(dims + 4) *= ratios_[partitioning_plan_index];
+				int partitioning_dims = (int)floor(*(dims + 4) * ratios_[partitioning_plan_index] + 0.5);
+				*(dims + 4) = partitioning_dims;
 			}
 		}
 		else {
@@ -98,10 +103,8 @@ void KmContext::channelPartitioning(std::vector<int>& partitioning_plan, std::ve
 }
 
 void KmContext::printOutputTensors() {
-//error
 	cout << fixed;
     cout.precision(4);
-	//cout << setfill(' ');
 	for (int partitioning_plan_index = 0;
 			partitioning_plan_index < partitioning_plan_.size(); partitioning_plan_index++) {
 		int node_index = partitioning_plan_[partitioning_plan_index];
@@ -112,8 +115,9 @@ void KmContext::printOutputTensors() {
 			TfLiteTensor& tensor = context_->tensors[tensor_index];
 			int* dims = (int*)tensor.dims;
 			int o = *(dims + 4);
-			int original_dims = o / ratios_[partitioning_plan_index];
-			int partitioning_dims = original_dims * ratios_[partitioning_plan_index];
+			//int original_dims = o / ratios_[partitioning_plan_index];
+			//int partitioning_dims = original_dims * ratios_[partitioning_plan_index];
+			int partitioning_dims = o;
 			int parameter = tensor.bytes / 4;
 			
 			vector<vector<float>> out;
