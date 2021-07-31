@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstring>
+#include <iomanip>
 
 #include "tensorflow/lite/kmcontext.h"
 
@@ -100,6 +101,7 @@ void KmContext::printOutputTensors() {
 //error
 	cout << fixed;
     cout.precision(4);
+	//cout << setfill(' ');
 	for (int partitioning_plan_index = 0;
 			partitioning_plan_index < partitioning_plan_.size(); partitioning_plan_index++) {
 		int node_index = partitioning_plan_[partitioning_plan_index];
@@ -147,9 +149,9 @@ void KmContext::printOutputTensors() {
 				int num = 0;
 				for (const auto& data : out[i]) {
 					if (data == 0)
-						cout << data << " ";
+						cout << /*setw(8) <<*/ data << " ";
 					else
-						cout << "\e[92m" << data << "\e[97m" << " ";
+						cout << "\e[92m" << /*setw(8) <<*/ data << "\e[97m" << " ";
 					if (num % w == w - 1) cout << endl;
 					if (num % (w * h) == w * h - 1) cout << endl;
 					num += 1;
